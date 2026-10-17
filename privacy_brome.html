@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Privacy Policy — Brome</title>
+<meta name="description" content="Privacy Policy for Brome — SMS & Messaging app.">
+<style>
+  :root {
+    --bg: #161009;
+    --bg-raised: #1f1811;
+    --accent: #e0ac70;
+    --text: #f2e9dd;
+    --text-dim: #ab9d8a;
+    --rule: #382c1e;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 72px 24px 96px;
+  }
+
+  .back {
+    display: inline-block;
+    font-size: 14px;
+    color: var(--text-dim);
+    text-decoration: none;
+    border-bottom: none;
+    margin-bottom: 32px;
+  }
+
+  .back:hover { color: var(--accent); }
+
+  header {
+    margin-bottom: 48px;
+    padding-bottom: 32px;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  h1 {
+    font-size: 32px;
+    line-height: 1.2;
+    margin: 0 0 12px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
+  .meta {
+    font-size: 14px;
+    color: var(--text-dim);
+  }
+
+  .meta strong { color: var(--text); }
+
+  .updated {
+    display: inline-block;
+    margin-top: 4px;
+    font-size: 14px;
+    color: var(--accent);
+    letter-spacing: 0.02em;
+  }
+
+  section {
+    padding: 28px 0;
+    border-top: 1px solid var(--rule);
+  }
+
+  h2 {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0 0 12px;
+    color: var(--accent);
+  }
+
+  h3 {
+    font-size: 15px;
+    font-weight: 600;
+    margin: 16px 0 6px;
+    color: var(--text);
+  }
+
+  p {
+    color: var(--text-dim);
+    margin: 0 0 12px;
+    max-width: 66ch;
+  }
+
+  ul {
+    color: var(--text-dim);
+    margin: 0 0 12px 20px;
+    padding: 0;
+    max-width: 66ch;
+  }
+
+  li {
+    margin-bottom: 6px;
+  }
+
+  p:last-child, ul:last-child { margin-bottom: 0; }
+
+  strong { color: var(--text); }
+
+  a {
+    color: var(--accent);
+    text-decoration: none;
+    border-bottom: 1px solid rgba(224, 172, 112, 0.35);
+    word-break: break-word;
+  }
+
+  a:hover { border-bottom-color: var(--accent); }
+
+  .link-box {
+    background: var(--bg-raised);
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+    padding: 16px 18px;
+    margin-top: 8px;
+  }
+
+  .link-box p {
+    margin: 0;
+    font-size: 14px;
+  }
+
+  footer {
+    margin-top: 48px;
+    padding-top: 24px;
+    border-top: 1px solid var(--rule);
+    color: var(--text-dim);
+    font-size: 13px;
+  }
+
+  @media (max-width: 520px) {
+    .wrap { padding: 48px 20px 64px; }
+    h1 { font-size: 26px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <a class="back" href="#">← Brome - Messages</a>
+
+  <header>
+    <h1>Privacy Policy</h1>
+    <div class="meta"><strong>App name:</strong> Brome</div>
+    <span class="updated">Effective date: October 17, 2026</span>
+  </header>
+
+  <section style="border-top:none; padding-top:0;">
+    <p>Brome ("the App", "we", "us", or "our") respects your privacy. This Privacy Policy describes how Brome accesses, handles, and protects your information when you use our Android SMS and messaging application.</p>
+    <p>Brome is designed with a <strong>privacy-first, local-first</strong> architecture. All message processing, categorization, and contact matching are performed entirely on your device. We do not collect, transmit, or store your personal conversations or contact records on external servers.</p>
+  </section>
+
+  <section>
+    <h2>Permissions We Request and How We Use Them</h2>
+    <p>To function as your default SMS application, Brome requests specific Android permissions strictly to deliver core messaging capabilities:</p>
+
+    <h3>1. SMS &amp; MMS Permissions</h3>
+    <ul>
+      <li><strong>READ_SMS &amp; RECEIVE_SMS:</strong> Required to display existing message conversations and detect incoming text messages in real time.</li>
+      <li><strong>SEND_SMS:</strong> Required to dispatch outgoing SMS messages over your cellular mobile network when you tap Send.</li>
+      <li><strong>RECEIVE_MMS &amp; RECEIVE_WAP_PUSH:</strong> Required to process and display incoming multimedia messages (MMS).</li>
+      <li><strong>WRITE_SMS:</strong> Required to save messages and conversation statuses (such as Sent, Delivered, Read, or Deleted) to the system telephony database.</li>
+    </ul>
+    <p><em>How this data is used:</em> Messages are organized into conversations and local smart categories (Personal, OTP, Finance, Promotions, Spam, Reminders, Tickets, etc.). <strong>All classification runs 100% locally on your device</strong> using on-device heuristics. Message contents are never transmitted to external cloud servers or AI processing backends.</p>
+
+    <h3>2. Contacts Permission (READ_CONTACTS)</h3>
+    <p>Brome accesses your contacts to:</p>
+    <ul>
+      <li>Display contact names and profile pictures in conversation lists and chat headers instead of raw phone numbers.</li>
+      <li>Provide auto-complete suggestions when composing a new message.</li>
+      <li>Distinguish messages from known personal contacts from automated business or promotional senders.</li>
+    </ul>
+    <p><em>How this data is used:</em> Contact information is processed strictly in temporary device memory. We do not copy, upload, sync, or transmit your address book to any outside servers.</p>
+
+    <h3>3. Phone State &amp; Dual-SIM Information (READ_PHONE_STATE, READ_PHONE_NUMBERS)</h3>
+    <p>This permission is used to identify active SIM card subscriptions in dual-SIM or multi-SIM devices so you can select and persist which SIM card to send messages from. It is not used to identify you or track your device across sessions.</p>
+
+    <h3>4. Notifications (POST_NOTIFICATIONS)</h3>
+    <p>Used to display alerts for new incoming messages, provide quick action buttons (such as "Copy Code" for OTPs or "Mark as Read"), and allow inline replies directly from your system notification shade.</p>
+
+    <h3>5. Alarms &amp; Background Services</h3>
+    <ul>
+      <li><strong>SCHEDULE_EXACT_ALARM:</strong> Used strictly for user-facing timed actions, such as scheduled message sending and automated cleanup rules (e.g., auto-deleting OTPs after your chosen duration).</li>
+      <li><strong>FOREGROUND_SERVICE:</strong> Used when handling background telephony tasks, such as headless message dispatching and incoming MMS downloads.</li>
+      <li><strong>SYSTEM_ALERT_WINDOW:</strong> An optional permission used only if you explicitly enable floating heads-up message bubbles or Island notifications.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Information We Collect and Store</h2>
+    <p>Brome <strong>does not collect or store your personal information on developer-owned servers</strong>.</p>
+    <p>Your text messages, conversations, contacts, and preferences remain stored locally on your device within Android's protected application sandbox and the standard Android Telephony provider.</p>
+  </section>
+
+  <section>
+    <h2>Data Sharing and Disclosure</h2>
+    <p>We do not sell, rent, license, monetize, or share your messages, contacts, phone numbers, or personal data with any third parties, data brokers, or advertising networks.</p>
+    <p><strong>Cellular Transmission:</strong> When you send an SMS or MMS, the message is transmitted through your mobile network carrier's cellular infrastructure to reach the intended recipient's handset, as is standard for all SMS messaging services.</p>
+  </section>
+
+  <section>
+    <h2>Advertising and Tracking</h2>
+    <p>Brome is completely <strong>ad-free</strong>. We do not display advertisements, nor do we embed third-party advertising frameworks, tracking beacons, or cross-app analytics trackers.</p>
+  </section>
+
+  <section>
+    <h2>Analytics and Diagnostics</h2>
+    <p>Brome does not use third-party analytics or behavioral tracking SDKs. Any diagnostic logs generated for troubleshooting (such as the optional debug probe tool) reside solely in volatile device memory and are not uploaded to any remote server.</p>
+  </section>
+
+  <section>
+    <h2>Data Retention and Deletion</h2>
+    <p>Because all data is stored on your device, you retain full control over your data retention:</p>
+    <ul>
+      <li><strong>Manual Deletion:</strong> You can delete individual messages or entire conversation threads at any time.</li>
+      <li><strong>Recycle Bin:</strong> Deleted messages moved to the Recycle Bin are held for 7 days before permanent deletion, or you can empty the Recycle Bin immediately.</li>
+      <li><strong>Auto-Delete Rules:</strong> You can configure Brome to automatically delete expired OTP messages (e.g., after 1 hour or 24 hours) or spam messages.</li>
+      <li><strong>Complete Data Erasure:</strong> Clearing the app storage via Android Settings or uninstalling the app permanently purges all app-specific caches and databases from your device.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Data Security</h2>
+    <p>Your messages are protected by Android's application sandboxing architecture, ensuring other non-system apps cannot access Brome's internal data. We recommend securing your physical device with a screen lock (PIN, password, or biometric authentication) to protect your local data.</p>
+  </section>
+
+  <section>
+    <h2>User Control and Revoking Permissions</h2>
+    <p>You can review, modify, or revoke permissions granted to Brome at any time through your Android device settings:</p>
+    <div class="link-box">
+      <p><strong>Settings &gt; Apps &gt; Brome &gt; Permissions</strong></p>
+    </div>
+    <p style="margin-top:12px;">You can also change your default SMS application at any time via <strong>Settings &gt; Apps &gt; Default apps &gt; SMS app</strong>.</p>
+  </section>
+
+  <section>
+    <h2>Children's Privacy</h2>
+    <p>Brome does not target, market to, or knowingly collect personal information from children under the age of 13 (or under 16 in certain jurisdictions). If you believe a child has provided us with personal information, please contact us so we can take appropriate steps.</p>
+  </section>
+
+  <section>
+    <h2>Changes to this Privacy Policy</h2>
+    <p>We may update this Privacy Policy from time to time to reflect changes in our practices or Android platform guidelines. Any revisions will be published with an updated effective date at the top of this policy.</p>
+  </section>
+
+  <section>
+    <h2>Contact Us</h2>
+    <p>If you have any questions, concerns, or feedback regarding this Privacy Policy or Brome's data practices, please contact us at:</p>
+    <div class="link-box">
+      <p><strong>Email:</strong> <a href="mailto:support@brome.app">support@brome.app</a></p>
+      <p style="margin-top:6px;"><strong>Website:</strong> <a href="https://ripplefiles.in" target="_blank" rel="noopener">https://ripplefiles.in</a></p>
+    </div>
+  </section>
+
+  <footer>
+    &copy; 2026 Brome. All rights reserved.
+  </footer>
+
+</div>
+</body>
+</html>
