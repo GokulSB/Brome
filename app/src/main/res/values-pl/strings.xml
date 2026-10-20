@@ -1,0 +1,115 @@
+<resources>
+    <string name="app_name">Brome</string>
+
+    <!-- General Actions -->
+    <string name="back">Wstecz</string>
+    <string name="cancel">Anuluj</string>
+    <string name="confirm">Potwierdź</string>
+    <string name="save">Zapisz</string>
+    <string name="delete">Usuń</string>
+    <string name="clear">Wyczyść</string>
+    <string name="close">Zamknij</string>
+    <string name="done">Gotowe</string>
+    <string name="search">Szukaj</string>
+    <string name="search_messages">Szukaj wiadomości</string>
+    <string name="see_all">Zobacz wszystko</string>
+    <string name="restore">Przywróć</string>
+    <string name="dismiss">Odrzuć</string>
+    <string name="recent">OSTATNIE</string>
+
+    <!-- Categories -->
+    <string name="categories_header">KATEGORIE</string>
+    <string name="show_more">Pokaż więcej</string>
+    <string name="show_less">Pokaż mniej</string>
+    <string name="cat_all">Wszystkie</string>
+    <string name="cat_messages">Wiadomości</string>
+    <string name="cat_unread">Nieprzeczytane</string>
+    <string name="cat_otp">OTP</string>
+    <string name="cat_finance">Transakcje</string>
+    <string name="cat_promotions">Promocje</string>
+    <string name="cat_spam">Spam</string>
+    <string name="cat_shopping">Zakupy</string>
+    <string name="cat_tickets">Bilety</string>
+    <string name="cat_reminders">Przypomnienia</string>
+    <string name="cat_subscriptions">Subskrypcje</string>
+    <string name="cat_important">Ważne</string>
+    <string name="cat_others">Inne</string>
+
+    <!-- Navigation -->
+    <string name="nav_messages">Wiadomości</string>
+    <string name="nav_starred">Oznaczone</string>
+    <string name="nav_contacts">Kontakty</string>
+    <string name="nav_archive">Archiwum</string>
+    <string name="nav_compose">Nowa wiadomość</string>
+
+    <!-- Screens & Empty States -->
+    <string name="finance_button">Finanse</string>
+    <string name="no_conversations">Brak rozmów</string>
+    <string name="no_messages">Brak wiadomości</string>
+    <string name="starred_title">Oznaczone</string>
+    <string name="starred_subtitle">%d zapisanych wiadomości</string>
+    <string name="starred_empty">Brak oznaczonych wiadomości</string>
+    <string name="archive_title">Archiwum</string>
+    <string name="archive_subtitle">Cisza, dopóki nie nadejdzie coś nowego</string>
+    <string name="archive_empty">Archiwum jest puste</string>
+    <string name="trash_title">Kosz</string>
+    <string name="trash_subtitle">Elementy w koszu zostaną trwale usunięte po 7 dniach.</string>
+    <string name="trash_empty">Brak wiadomości w koszu</string>
+    <string name="empty_trash">Opróżnij kosz</string>
+    <string name="contacts_title">Kontakty</string>
+    <string name="contacts_empty">Nie znaleziono kontaktów</string>
+
+    <!-- Settings Hub -->
+    <string name="settings_title">Ustawienia</string>
+    <string name="section_appearance">Wygląd</string>
+    <string name="section_layout">Układ i sortowanie</string>
+    <string name="section_autodelete_lang">Autousuwanie i język</string>
+    <string name="section_about">Informacje</string>
+    <string name="tile_background">Tło</string>
+    <string name="tile_background_desc">Wzór, faktura i styl wyglądu</string>
+    <string name="tile_nav_buttons">Nawigacja, przyciski i wyszukiwanie</string>
+    <string name="tile_nav_buttons_desc">Wysokość paska, rozmiar FAB i podpowiedź wyszukiwania</string>
+    <string name="tile_categories">Kategorie</string>
+    <string name="tile_categories_desc">Włączanie i zmiana kolorów kategorii</string>
+    <string name="tile_autodelete">Reguły automatycznego usuwania</string>
+    <string name="tile_language">Język</string>
+    <string name="tile_language_desc">Język aplikacji</string>
+
+    <!-- Auto-Delete & Language -->
+    <string name="otp_autodelete_title">Usuwaj kody OTP po:</string>
+    <string name="spam_autodelete_title">Wiadomości spam</string>
+    <string name="spam_autodelete_desc">Usuwaj spam po:</string>
+    <string name="recycle_bin_title">Kosz</string>
+    <string name="recycle_bin_desc">Przechowuj usunięte wiadomości przez:</string>
+    <string name="starred_never_deleted">Oznaczone wiadomości nigdy nie są usuwane automatycznie.</string>
+
+    <!-- Language Names -->
+    <string name="lang_system">Domyślny systemowy</string>
+    <string name="lang_en">Angielski</string>
+    <string name="lang_es">Hiszpański</string>
+    <string name="lang_fr">Francuski</string>
+    <string name="lang_de">Niemiecki</string>
+    <string name="lang_ru">Rosyjski</string>
+    <string name="lang_pl">Polski</string>
+    <string name="lang_hu">Węgierski</string>
+    <string name="lang_ar">Arabski</string>
+    <string name="lang_it">Włoski</string>
+    <string name="lang_pt">Portugalski</string>
+
+    <!-- Chat & Action Details -->
+    <string name="type_message">Wpisz wiadomość…</string>
+    <string name="send">Wyślij</string>
+    <string name="call">Zadzwoń</string>
+    <string name="block">Zablokuj</string>
+    <string name="delete_conversation">Usuń rozmowę</string>
+    <string name="copy_code">Kopiuj kod</string>
+    <string name="code_copied">Kod skopiowany</string>
+
+    <!-- Time Durations -->
+    <string name="time_never">Nigdy</string>
+    <string name="time_1_hour">1 godzina</string>
+    <string name="time_24_hours">24 godziny</string>
+    <string name="time_7_days">7 dni</string>
+    <string name="time_30_days">30 dni</string>
+    <string name="time_60_days">60 dni</string>
+</resources>

@@ -1,0 +1,115 @@
+<resources>
+    <string name="app_name">Brome</string>
+
+    <!-- General Actions -->
+    <string name="back">Indietro</string>
+    <string name="cancel">Annulla</string>
+    <string name="confirm">Conferma</string>
+    <string name="save">Salva</string>
+    <string name="delete">Elimina</string>
+    <string name="clear">Cancella</string>
+    <string name="close">Chiudi</string>
+    <string name="done">Fine</string>
+    <string name="search">Cerca</string>
+    <string name="search_messages">Cerca messaggi</string>
+    <string name="see_all">Vedi tutti</string>
+    <string name="restore">Ripristina</string>
+    <string name="dismiss">Chiudi</string>
+    <string name="recent">RECENTI</string>
+
+    <!-- Categories -->
+    <string name="categories_header">CATEGORIE</string>
+    <string name="show_more">Mostra altro</string>
+    <string name="show_less">Mostra meno</string>
+    <string name="cat_all">Tutti</string>
+    <string name="cat_messages">Messaggi</string>
+    <string name="cat_unread">Non letti</string>
+    <string name="cat_otp">OTP</string>
+    <string name="cat_finance">Transazioni</string>
+    <string name="cat_promotions">Promozioni</string>
+    <string name="cat_spam">Spam</string>
+    <string name="cat_shopping">Acquisti</string>
+    <string name="cat_tickets">Biglietti</string>
+    <string name="cat_reminders">Promemoria</string>
+    <string name="cat_subscriptions">Abbonamenti</string>
+    <string name="cat_important">Importante</string>
+    <string name="cat_others">Altri</string>
+
+    <!-- Navigation -->
+    <string name="nav_messages">Messaggi</string>
+    <string name="nav_starred">Speciali</string>
+    <string name="nav_contacts">Contatti</string>
+    <string name="nav_archive">Archivio</string>
+    <string name="nav_compose">Nuovo messaggio</string>
+
+    <!-- Screens & Empty States -->
+    <string name="finance_button">Finanza</string>
+    <string name="no_conversations">Nessuna conversazione</string>
+    <string name="no_messages">Nessun messaggio</string>
+    <string name="starred_title">Speciali</string>
+    <string name="starred_subtitle">%d messaggi salvati</string>
+    <string name="starred_empty">Nessun messaggio speciale</string>
+    <string name="archive_title">Archivio</string>
+    <string name="archive_subtitle">Silenzioso finché non arriva una novità</string>
+    <string name="archive_empty">L\'archivio è vuoto</string>
+    <string name="trash_title">Cestino</string>
+    <string name="trash_subtitle">Gli elementi nel cestino verranno eliminati definitivamente dopo 7 giorni.</string>
+    <string name="trash_empty">Nessun messaggio nel cestino</string>
+    <string name="empty_trash">Svuota cestino</string>
+    <string name="contacts_title">Contatti</string>
+    <string name="contacts_empty">Nessun contatto trovato</string>
+
+    <!-- Settings Hub -->
+    <string name="settings_title">Impostazioni</string>
+    <string name="section_appearance">Aspetto</string>
+    <string name="section_layout">Layout &amp; Ordinamento</string>
+    <string name="section_autodelete_lang">Eliminazione automatica &amp; Lingua</string>
+    <string name="section_about">Info</string>
+    <string name="tile_background">Sfondo</string>
+    <string name="tile_background_desc">Pattern, texture &amp; stile grafico</string>
+    <string name="tile_nav_buttons">Navigazione, pulsanti &amp; ricerca</string>
+    <string name="tile_nav_buttons_desc">Altezza barra, dimensione FAB &amp; suggerimento di ricerca</string>
+    <string name="tile_categories">Categorie</string>
+    <string name="tile_categories_desc">Attiva e ricolora le categorie dei messaggi</string>
+    <string name="tile_autodelete">Regole di eliminazione automatica</string>
+    <string name="tile_language">Lingua</string>
+    <string name="tile_language_desc">Lingua dell\'applicazione</string>
+
+    <!-- Auto-Delete & Language -->
+    <string name="otp_autodelete_title">Elimina OTP automaticamente dopo:</string>
+    <string name="spam_autodelete_title">Messaggi spam</string>
+    <string name="spam_autodelete_desc">Elimina spam automaticamente dopo:</string>
+    <string name="recycle_bin_title">Cestino</string>
+    <string name="recycle_bin_desc">Conserva messaggi eliminati per:</string>
+    <string name="starred_never_deleted">I messaggi speciali non vengono mai eliminati automaticamente.</string>
+
+    <!-- Language Names -->
+    <string name="lang_system">Predefinito di sistema</string>
+    <string name="lang_en">Inglese</string>
+    <string name="lang_es">Spagnolo</string>
+    <string name="lang_fr">Francese</string>
+    <string name="lang_de">Tedesco</string>
+    <string name="lang_ru">Russo</string>
+    <string name="lang_pl">Polacco</string>
+    <string name="lang_hu">Ungherese</string>
+    <string name="lang_ar">Arabo</string>
+    <string name="lang_it">Italiano</string>
+    <string name="lang_pt">Portoghese</string>
+
+    <!-- Chat & Action Details -->
+    <string name="type_message">Scrivi un messaggio…</string>
+    <string name="send">Invia</string>
+    <string name="call">Chiama</string>
+    <string name="block">Blocca</string>
+    <string name="delete_conversation">Elimina conversazione</string>
+    <string name="copy_code">Copia codice</string>
+    <string name="code_copied">Codice copiato</string>
+
+    <!-- Time Durations -->
+    <string name="time_never">Mai</string>
+    <string name="time_1_hour">1 ora</string>
+    <string name="time_24_hours">24 ore</string>
+    <string name="time_7_days">7 giorni</string>
+    <string name="time_30_days">30 giorni</string>
+    <string name="time_60_days">60 giorni</string>
+</resources>

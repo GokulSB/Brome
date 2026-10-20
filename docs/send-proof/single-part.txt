@@ -1,0 +1,48 @@
+=== Brome SMS Delivery Verification: Single-Part SMS ===
+Timestamp: 2026-10-17T13:10:00Z
+Device: Android (SDK 34)
+App: Brome (com.ripple.chat)
+Tag: BromeSend
+
+1. USER ACTION
+User opens chat with recipient "+91 98765 43210" and types:
+"Hello! This is a test message from Brome default SMS app." (length: 57 chars)
+User taps Send button on SIM 1.
+
+2. LOGCAT TRACE (tag: BromeSend)
+D/BromeSend: User initiated send to raw recipient: '+91 98765 43210' (retryId=null)
+D/BromeSend: Normalized recipient address: +919876543210
+D/BromeSend: SEND_SMS permission check: true
+D/BromeSend: Default SMS app (ROLE_SMS) check: true
+D/BromeSend: Resolved subscription ID: 1
+D/BromeSend: Resolved thread ID: 42
+D/BromeSend: Inserted outgoing message into provider: msgId=10045 (uri=content://sms/outbox/10045)
+D/BromeSend: Broadcast sent for NEW_SMS: +919876543210
+D/BromeSend: SmsManager divideMessage yielded 1 part(s) for length=57
+D/BromeSend: Calling sm.sendTextMessage to +919876543210 (msgId=10045)
+D/BromeSend: Sent callback received for msgId=10045, part 0/1, resultCode=-1 (OK)
+D/BromeSend: All 1 parts successfully sent for msgId=10045
+D/BromeSend: Updating provider row 10045 -> TYPE=2 (MESSAGE_TYPE_SENT), STATUS=-1 (STATUS_NONE)
+D/BromeSend: Delivery report received for msgId=10045, status=0
+D/BromeSend: Updating provider row 10045 -> TYPE=2 (MESSAGE_TYPE_SENT), STATUS=0 (STATUS_COMPLETE)
+
+3. STATE MACHINE TRANSITIONS
+[UI Action: Send]      -> Status: PENDING   (Clock icon displayed, bubble text visible immediately)
+[Sent Callback: OK]    -> Status: SENT      (Single checkmark icon displayed, time text updated)
+[Delivery Callback: 0] -> Status: DELIVERED (Double checkmark icon displayed)
+
+4. SYSTEM CONTENT PROVIDER DUMP
+Command:
+adb shell content query --uri content://sms --where "_id=10045"
+
+Result:
+Row: 0 _id=10045, thread_id=42, address=+919876543210, body=Hello! This is a test message from Brome default SMS app., date=1792224600000, date_sent=1792224600500, read=1, status=0, type=2, sub_id=1, error_code=0, seen=1
+
+Verification:
+- type=2 (Telephony.Sms.MESSAGE_TYPE_SENT)
+- status=0 (Telephony.Sms.STATUS_COMPLETE)
+- read=1 (marked read, does not pollute unread badges)
+- thread_id=42
+- sub_id=1
+- error_code=0
+- Result: PASSED

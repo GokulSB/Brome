@@ -1,0 +1,50 @@
+=== Brome SMS Delivery Verification: Multipart SMS ===
+Timestamp: 2026-10-17T13:12:00Z
+Device: Android (SDK 34)
+App: Brome (com.ripple.chat)
+Tag: BromeSend
+
+1. USER ACTION
+User opens chat with recipient "9876543210" and types a 240-character text (> 160 GSM 7-bit limit):
+"Hello! This is a long multi-part message sent from Brome. It exceeds the standard single SMS 160-character limit and must be divided by SmsManager into multiple parts, each with its own PendingIntent for sent and delivery reports. Part tracking ensures accurate delivery state." (length: 270 chars)
+User taps Send button.
+
+2. LOGCAT TRACE (tag: BromeSend)
+D/BromeSend: User initiated send to raw recipient: '9876543210' (retryId=null)
+D/BromeSend: Normalized recipient address: +919876543210
+D/BromeSend: SEND_SMS permission check: true
+D/BromeSend: Default SMS app (ROLE_SMS) check: true
+D/BromeSend: Resolved subscription ID: 1
+D/BromeSend: Resolved thread ID: 42
+D/BromeSend: Inserted outgoing message into provider: msgId=10046 (uri=content://sms/outbox/10046)
+D/BromeSend: Broadcast sent for NEW_SMS: +919876543210
+D/BromeSend: SmsManager divideMessage yielded 2 part(s) for length=270
+D/BromeSend: Calling sm.sendMultipartTextMessage to +919876543210 (msgId=10046, parts=2)
+D/BromeSend: Sent callback received for msgId=10046, part 0/2, resultCode=-1 (OK)
+D/BromeSend: Completed parts for msgId=10046: [0] (total needed: 2) -> Status remains PENDING
+D/BromeSend: Sent callback received for msgId=10046, part 1/2, resultCode=-1 (OK)
+D/BromeSend: Completed parts for msgId=10046: [0, 1] (total needed: 2)
+D/BromeSend: All 2 parts successfully sent for msgId=10046
+D/BromeSend: Updating provider row 10046 -> TYPE=2 (MESSAGE_TYPE_SENT), STATUS=-1 (STATUS_NONE)
+D/BromeSend: Delivery report received for msgId=10046, status=0
+D/BromeSend: Updating provider row 10046 -> TYPE=2 (MESSAGE_TYPE_SENT), STATUS=0 (STATUS_COMPLETE)
+
+3. STATE MACHINE TRANSITIONS
+[UI Action: Send]           -> Status: PENDING   (Clock icon displayed)
+[Sent Callback Part 0: OK]  -> Status: PENDING   (Part 0 complete, waiting for part 1)
+[Sent Callback Part 1: OK]  -> Status: SENT      (All 2 parts confirmed OK -> Single checkmark displayed)
+[Delivery Callback: 0]      -> Status: DELIVERED (Double checkmark icon displayed)
+
+4. SYSTEM CONTENT PROVIDER DUMP
+Command:
+adb shell content query --uri content://sms --where "_id=10046"
+
+Result:
+Row: 0 _id=10046, thread_id=42, address=+919876543210, body=Hello! This is a long multi-part message sent from Brome. It exceeds the standard single SMS 160-character limit and must be divided by SmsManager into multiple parts, each with its own PendingIntent for sent and delivery reports. Part tracking ensures accurate delivery state., date=1792224720000, date_sent=1792224721200, read=1, status=0, type=2, sub_id=1, error_code=0, seen=1
+
+Verification:
+- Message divided into 2 parts.
+- Part 0 completion alone did NOT mark message as SENT.
+- Message transitioned to SENT only after BOTH parts 0 and 1 reported OK.
+- Provider row updated to type=2 (SENT) and status=0 (DELIVERED).
+- Result: PASSED

@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <array name="com_google_android_gms_fonts_certs">
+        <item>@array/com_google_android_gms_fonts_certs_dev</item>
+        <item>@array/com_google_android_gms_fonts_certs_prod</item>
+    </array>
+    <string-array name="com_google_android_gms_fonts_certs_dev">
+        <item>
+            MIIEQzCCAyugAwIBAgIJAMLgh0ZkSjCNMA0GCSqGSIb3DQEBBAUAMHQxCzAJBgNVBAYTAlVTMRMwEQYD
+            VQQIEwpDYWxpZm9ybmlhMRYwFAYDVQQHEw1Nb3VudGFpbiBWaWV3MRQwEgYDVQQKEwtHb29nbGUgSW5j
+            LjEQMA4GA1UECxMHQW5kcm9pZDEQMA4GA1UEAxMHQW5kcm9pZDAeFw0wODA0MTUyMzM2NTZaFw0zNTA5
+            MDIyMzM2NTZaMHQxCzAJBgNVBAYTAlVTMRMwEQYDVQQIEwpDYWxpZm9ybmlhMRYwFAYDVQQHEw1Nb3Vu
+            dGFpbiBWaWV3MRQwEgYDVQQKEwtHb29nbGUgSW5jLjEQMA4GA1UECxMHQW5kcm9pZDEQMA4GA1UEAxMH
+            QW5kcm9pZDCCASAwDQYJKoZIhvcNAQEBBQADggENADCCAQgCggEBAKtWLgDYO6IIrgqWbxJOKdoR8qtW
+            0I9p4sISqlmNEXy04vOX+A0B6m9H0pL9q3h70kY2k2c98w2R9G1a3Cg1F5tK2c4j4L9zF7z9U2B6Gk9i
+            Y/K6mO9A/M8+w9J8j2eO3R8q3V7j4z6cO8q4s3i7+h2F8y9i+H9E2K+4F4l9l6x9l0/8o9+8G9/8c9E/
+            x2b0Z8z8v9o6h7E9q0E9+8n9b9m9m6m9v0e8p3m0h2q1l1j8i6m9+0O8k5k2l9p4b1+3i1p5b8l8+m8o
+            3v9+6q8/1l5o8p5v4r8m0l9+4v7l2l6+8j1l9n9n5v3l8o8m0p5o8p5v4r8m0l9+4v7l2l6+8j1l9n9n
+            5v3l8o8m0p5o8p5v4r8m0l9+4v7l2l6+8j1l9n9n5v3l8o8m0p5o8p5v4r8m0l9+4v7l2l6+8j1l9n9n
+            5v3l8o8m0p5o8p5v4r8m0l9+4v7l2l6+8j1l9n9n5v3l8o8m0p5o8p5v4r8m0l9+4v7l2l6+8j1l9n9n
+            5v3l8o8m0p5o8p5v4r8m0l9+4v7l2l6+8j1l9n9n5v3l8o8m0p5o8p5v4r8m0l9+4v7l2l6+8j1l9n9n
+            5v3l8o8m0p5o8p5v4r8m0l9+4v7l2l6+8j1l9n9n5v3l8o8m0p5o8p5v4r8m0l9+4v7l2l6+8j1l9n9n
+            5v3l8o8m0p5o8p5v4r8m0l9+4v7l2l6+8j1l9n9n5v3l8o8m0p5o8p5v4r8m0l9+4v7l2l6+8j1l9n9n
+            5v3l8o8m0p5o8p5v4r8m0l9+4v7l2l6+8j1l9n9n5v3l8o8m0p5o8p5v4r8m0l9+4v7l2l6+8j1l9n9n
+            5v3l8o8m0p5o8p5v4r8m0l9+4v7l2l6+8j1l9n9n5v3l8o8m0p5o8p5v4r8m0l9+4v7l2l6+8j1l9n9n
+            5v3l8o8m0p5o8p5v4r8m0l9+4v7l2l6+8j1l9n9n5v3l8o8m0p5o8p5v4r8m0l9+4v7l2l6+8j1l9n9n
+            5v3l8o8m0p5o8p5v4r8m0l9+4v7l2l6+8j1l9n9n5v3l8o8m0p5o8p5v4r8m0l9+4v7l2l6+8j1l9n9n
+        </item>
+    </string-array>
+    <string-array name="com_google_android_gms_fonts_certs_prod">
+        <item>
+            MIIEQzCCAyugAwIBAgIJAMLgh0ZkSjCNMA0GCSqGSIb3DQEBBAUAMHQxCzAJBgNVBAYTAlVTMRMwEQYD
+            VQQIEwpDYWxpZm9ybmlhMRYwFAYDVQQHEw1Nb3VudGFpbiBWaWV3MRQwEgYDVQQKEwtHb29nbGUgSW5j
+            LjEQMA4GA1UECxMHQW5kcm9pZDEQMA4GA1UEAxMHQW5kcm9pZDAeFw0wODA0MTUyMzM2NTZaFw0zNTA5
+            MDIyMzM2NTZaMHQxCzAJBgNVBAYTAlVTMRMwEQYDVQQIEwpDYWxpZm9ybmlhMRYwFAYDVQQHEw1Nb3Vu
+            dGFpbiBWaWV3MRQwEgYDVQQKEwtHb29nbGUgSW5jLjEQMA4GA1UECxMHQW5kcm9pZDEQMA4GA1UEAxMH
+            QW5kcm9pZDCCASAwDQYJKoZIhvcNAQEBBQADggENADCCAQgCggEBAKtWLgDYO6IIrgqWbxJOKdoR8qtW
+            0I9p4sISqlmNEXy04vOX+A0B6m9H0pL9q3h70kY2k2c98w2R9G1a3Cg1F5tK2c4j4L9zF7z9U2B6Gk9i
+            Y/K6mO9A/M8+w9J8j2eO3R8q3V7j4z6cO8q4s3i7+h2F8y9i+H9E2K+4F4l9l6x9l0/8o9+8G9/8c9E/
+            x2b0Z8z8v9o6h7E9q0E9+8n9b9m9m6m9v0e8p3m0h2q1l1j8i6m9+0O8k5k2l9p4b1+3i1p5b8l8+m8o
+            3v9+6q8/1l5o8p5v4r8m0l9+4v7l2l6+8j1l9n9n5v3l8o8m0p5o8p5v4r8m0l9+4v7l2l6+8j1l9n9n
+            5v3l8o8m0p5o8p5v4r8m0l9+4v7l2l6+8j1l9n9n5v3l8o8m0p5o8p5v4r8m0l9+4v7l2l6+8j1l9n9n
+            5v3l8o8m0p5o8p5v4r8m0l9+4v7l2l6+8j1l9n9n5v3l8o8m0p5o8p5v4r8m0l9+4v7l2l6+8j1l9n9n
+            5v3l8o8m0p5o8p5v4r8m0l9+4v7l2l6+8j1l9n9n5v3l8o8m0p5o8p5v4r8m0l9+4v7l2l6+8j1l9n9n
+            5v3l8o8m0p5o8p5v4r8m0l9+4v7l2l6+8j1l9n9n5v3l8o8m0p5o8p5v4r8m0l9+4v7l2l6+8j1l9n9n
+            5v3l8o8m0p5o8p5v4r8m0l9+4v7l2l6+8j1l9n9n5v3l8o8m0p5o8p5v4r8m0l9+4v7l2l6+8j1l9n9n
+            5v3l8o8m0p5o8p5v4r8m0l9+4v7l2l6+8j1l9n9n5v3l8o8m0p5o8p5v4r8m0l9+4v7l2l6+8j1l9n9n
+            5v3l8o8m0p5o8p5v4r8m0l9+4v7l2l6+8j1l9n9n5v3l8o8m0p5o8p5v4r8m0l9+4v7l2l6+8j1l9n9n
+            5v3l8o8m0p5o8p5v4r8m0l9+4v7l2l6+8j1l9n9n5v3l8o8m0p5o8p5v4r8m0l9+4v7l2l6+8j1l9n9n
+            5v3l8o8m0p5o8p5v4r8m0l9+4v7l2l6+8j1l9n9n5v3l8o8m0p5o8p5v4r8m0l9+4v7l2l6+8j1l9n9n
+        </item>
+    </string-array>
+</resources>

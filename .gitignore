@@ -1,0 +1,37 @@
+*.iml
+.gradle/
+/local.properties
+local.properties
+/.idea/
+.idea/
+.DS_Store
+/build/
+build/
+app/build/
+/captures
+.externalNativeBuild
+.cxx
+
+# Built binaries
+*.apk
+*.aab
+*.ap_
+*.dex
+*.log
+.kotlin/
+
+# Temporary / Scratch scripts
+*.py
+test.kt
+test.txt
+
+# Keystores & Signing credentials
+*.jks
+*.keystore
+*.key
+release.jks
+app/release.jks
+
+# OS generated
+Thumbs.db
+

@@ -1,0 +1,116 @@
+<resources>
+    <string name="app_name">Brome</string>
+
+    <!-- General Actions -->
+    <string name="back">Back</string>
+    <string name="cancel">Cancel</string>
+    <string name="confirm">Confirm</string>
+    <string name="save">Save</string>
+    <string name="delete">Delete</string>
+    <string name="clear">Clear</string>
+    <string name="close">Close</string>
+    <string name="done">Done</string>
+    <string name="search">Search</string>
+    <string name="search_messages">Search messages</string>
+    <string name="see_all">See all</string>
+    <string name="restore">Restore</string>
+    <string name="dismiss">Dismiss</string>
+    <string name="recent">RECENT</string>
+
+    <!-- Categories -->
+    <string name="categories_header">CATEGORIES</string>
+    <string name="show_more">Show more</string>
+    <string name="show_less">Show less</string>
+    <string name="cat_all">All</string>
+    <string name="cat_messages">Messages</string>
+    <string name="cat_unread">Unread</string>
+    <string name="cat_personal">Personal</string>
+    <string name="cat_otp">OTP</string>
+    <string name="cat_finance">Finance</string>
+    <string name="cat_promotions">Promotions</string>
+    <string name="cat_spam">Spam</string>
+    <string name="cat_shopping">Shopping</string>
+    <string name="cat_tickets">Tickets</string>
+    <string name="cat_reminders">Reminders</string>
+    <string name="cat_subscriptions">Subscriptions</string>
+    <string name="cat_important">Important</string>
+    <string name="cat_others">Others</string>
+
+    <!-- Navigation -->
+    <string name="nav_messages">Messages</string>
+    <string name="nav_starred">Starred</string>
+    <string name="nav_contacts">Contacts</string>
+    <string name="nav_archive">Archive</string>
+    <string name="nav_compose">New message</string>
+
+    <!-- Screens & Empty States -->
+    <string name="finance_button">Finance</string>
+    <string name="no_conversations">No conversations yet</string>
+    <string name="no_messages">No messages yet</string>
+    <string name="starred_title">Starred</string>
+    <string name="starred_subtitle">%d messages you kept close</string>
+    <string name="starred_empty">No starred messages</string>
+    <string name="archive_title">Archive</string>
+    <string name="archive_subtitle">Quiet until something new arrives</string>
+    <string name="archive_empty">Archive is empty</string>
+    <string name="trash_title">Recycle Bin</string>
+    <string name="trash_subtitle">Items in trash will be permanently deleted after 7 days.</string>
+    <string name="trash_empty">No messages in trash</string>
+    <string name="empty_trash">Empty Trash</string>
+    <string name="contacts_title">Contacts</string>
+    <string name="contacts_empty">No contacts found</string>
+
+    <!-- Settings Hub -->
+    <string name="settings_title">Settings</string>
+    <string name="section_appearance">Appearance</string>
+    <string name="section_layout">Layout &amp; Sorting</string>
+    <string name="section_autodelete_lang">Auto-delete &amp; Language</string>
+    <string name="section_about">About</string>
+    <string name="tile_background">Background</string>
+    <string name="tile_background_desc">Pattern, texture &amp; appearance styling</string>
+    <string name="tile_nav_buttons">Navigation, buttons &amp; search</string>
+    <string name="tile_nav_buttons_desc">Pill height, compose FAB size &amp; custom search hint</string>
+    <string name="tile_categories">Categories</string>
+    <string name="tile_categories_desc">Toggle and recolor message sorting</string>
+    <string name="tile_autodelete">Auto-delete rules</string>
+    <string name="tile_language">Language</string>
+    <string name="tile_language_desc">App language and script</string>
+
+    <!-- Auto-Delete & Language -->
+    <string name="otp_autodelete_title">Delete OTPs automatically after:</string>
+    <string name="spam_autodelete_title">Spam messages</string>
+    <string name="spam_autodelete_desc">Delete spam automatically after:</string>
+    <string name="recycle_bin_title">Recycle bin</string>
+    <string name="recycle_bin_desc">Keep deleted messages for:</string>
+    <string name="starred_never_deleted">Starred messages are never deleted automatically.</string>
+
+    <!-- Language Names -->
+    <string name="lang_system">System default</string>
+    <string name="lang_en">English</string>
+    <string name="lang_es">Español</string>
+    <string name="lang_fr">Français</string>
+    <string name="lang_de">Deutsch</string>
+    <string name="lang_ru">Русский</string>
+    <string name="lang_pl">Polski</string>
+    <string name="lang_hu">Magyar</string>
+    <string name="lang_ar">العربية</string>
+    <string name="lang_it">Italiano</string>
+    <string name="lang_pt">Português</string>
+
+    <!-- Chat & Action Details -->
+    <string name="type_message">Type a message…</string>
+    <string name="send">Send</string>
+    <string name="call">Call</string>
+    <string name="block">Block</string>
+    <string name="delete_conversation">Delete conversation</string>
+    <string name="copy_code">Copy code</string>
+    <string name="code_copied">Code copied</string>
+
+    <!-- Time Durations -->
+    <string name="time_never">Never</string>
+    <string name="time_1_hour">1 Hour</string>
+    <string name="time_24_hours">24 Hours</string>
+    <string name="time_7_days">7 Days</string>
+    <string name="time_30_days">30 Days</string>
+    <string name="time_60_days">60 Days</string>
+</resources>

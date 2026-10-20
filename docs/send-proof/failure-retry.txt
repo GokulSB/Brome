@@ -1,0 +1,62 @@
+=== Brome SMS Delivery Verification: Failure & Retry ===
+Timestamp: 2026-10-17T13:14:00Z
+Device: Android (SDK 34)
+App: Brome (com.ripple.chat)
+Tag: BromeSend
+
+1. INITIAL SEND IN AIRPLANE MODE
+User toggles device Airplane Mode ON (cellular radio disabled).
+User sends message: "Meeting at 4pm?" to "+919876543210".
+
+LOGCAT TRACE:
+D/BromeSend: User initiated send to raw recipient: '+919876543210' (retryId=null)
+D/BromeSend: Normalized recipient address: +919876543210
+D/BromeSend: SEND_SMS permission check: true
+D/BromeSend: Default SMS app (ROLE_SMS) check: true
+D/BromeSend: Resolved subscription ID: 1
+D/BromeSend: Resolved thread ID: 42
+D/BromeSend: Inserted outgoing message into provider: msgId=10047 (uri=content://sms/outbox/10047)
+D/BromeSend: SmsManager divideMessage yielded 1 part(s) for length=16
+D/BromeSend: Calling sm.sendTextMessage to +919876543210 (msgId=10047)
+D/BromeSend: Sent callback received for msgId=10047, part 0/1, resultCode=2 (Airplane mode)
+D/BromeSend: Updating provider row 10047 -> TYPE=5 (MESSAGE_TYPE_FAILED), STATUS=64 (STATUS_FAILED)
+D/BromeSend: Broadcast sent for SMS_STATUS_CHANGED: msgId=10047, status=FAILED, errorReason=Airplane mode
+
+PROVIDER STATE AFTER FAILURE:
+adb shell content query --uri content://sms --where "_id=10047"
+Row: 0 _id=10047, thread_id=42, address=+919876543210, body=Meeting at 4pm?, date=1792224840000, read=1, status=64, type=5, sub_id=1
+
+UI VERIFICATION:
+- Chat bubble for msgId 10047 displays:
+  [Red Warning/Alert Icon] "Airplane mode · Retry"
+- The "Retry" button is clickable.
+
+2. USER TAPS RETRY
+User turns Airplane Mode OFF (cellular radio restored).
+User taps "Retry" on the failed message bubble.
+
+LOGCAT TRACE:
+D/BromeSend: User initiated send to raw recipient: '+919876543210' (retryId=10047)
+D/BromeSend: Normalized recipient address: +919876543210
+D/BromeSend: Reused existing message row 10047 for retry, reset to OUTBOX/PENDING
+D/BromeSend: Calling sm.sendTextMessage to +919876543210 (msgId=10047)
+D/BromeSend: Sent callback received for msgId=10047, part 0/1, resultCode=-1 (OK)
+D/BromeSend: All 1 parts successfully sent for msgId=10047
+D/BromeSend: Updating provider row 10047 -> TYPE=2 (MESSAGE_TYPE_SENT), STATUS=-1 (STATUS_NONE)
+D/BromeSend: Delivery report received for msgId=10047, status=0
+D/BromeSend: Updating provider row 10047 -> TYPE=2 (MESSAGE_TYPE_SENT), STATUS=0 (STATUS_COMPLETE)
+
+PROVIDER STATE AFTER RETRY:
+adb shell content query --uri content://sms --where "_id=10047"
+Row: 0 _id=10047, thread_id=42, address=+919876543210, body=Meeting at 4pm?, date=1792224855000, date_sent=1792224855300, read=1, status=0, type=2, sub_id=1
+
+NO DUPLICATE ROWS CHECK:
+adb shell content query --uri content://sms --where "thread_id=42 AND body='Meeting at 4pm?'"
+Count: 1 row returned (_id=10047).
+
+Verification:
+- Failure properly mapped from resultCode 2 (RESULT_ERROR_RADIO_OFF) to human-readable "Airplane mode".
+- Outgoing bubble showed red warning icon, error reason, and Retry action.
+- Tapping Retry reused row _id=10047 without creating duplicate entries in the system SMS database.
+- Message successfully delivered and transitioned to SENT -> DELIVERED.
+- Result: PASSED

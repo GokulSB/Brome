@@ -1,0 +1,115 @@
+<resources>
+    <string name="app_name">Brome</string>
+
+    <!-- General Actions -->
+    <string name="back">رجوع</string>
+    <string name="cancel">إلغاء</string>
+    <string name="confirm">تأكيد</string>
+    <string name="save">حفظ</string>
+    <string name="delete">حذف</string>
+    <string name="clear">مسح</string>
+    <string name="close">إغلاق</string>
+    <string name="done">تم</string>
+    <string name="search">بحث</string>
+    <string name="search_messages">البحث في الرسائل</string>
+    <string name="see_all">عرض الكل</string>
+    <string name="restore">استعادة</string>
+    <string name="dismiss">تجاهل</string>
+    <string name="recent">الأحدث</string>
+
+    <!-- Categories -->
+    <string name="categories_header">التصنيفات</string>
+    <string name="show_more">عرض المزيد</string>
+    <string name="show_less">عرض أقل</string>
+    <string name="cat_all">الكل</string>
+    <string name="cat_messages">الرسائل</string>
+    <string name="cat_unread">غير مقروءة</string>
+    <string name="cat_otp">OTP</string>
+    <string name="cat_finance">المعاملات</string>
+    <string name="cat_promotions">العروض</string>
+    <string name="cat_spam">الرسائل غير المرغوب فيها</string>
+    <string name="cat_shopping">التسوق</string>
+    <string name="cat_tickets">التذاكر</string>
+    <string name="cat_reminders">التذكيرات</string>
+    <string name="cat_subscriptions">الاشتراكات</string>
+    <string name="cat_important">هام</string>
+    <string name="cat_others">أخرى</string>
+
+    <!-- Navigation -->
+    <string name="nav_messages">الرسائل</string>
+    <string name="nav_starred">المميزة</string>
+    <string name="nav_contacts">جهات الاتصال</string>
+    <string name="nav_archive">الأرشيف</string>
+    <string name="nav_compose">رسالة جديدة</string>
+
+    <!-- Screens & Empty States -->
+    <string name="finance_button">المالية</string>
+    <string name="no_conversations">لا توجد محادثات بعد</string>
+    <string name="no_messages">لا توجد رسائل بعد</string>
+    <string name="starred_title">المميزة</string>
+    <string name="starred_subtitle">%d رسائل محفوظة</string>
+    <string name="starred_empty">لا توجد رسائل مميزة</string>
+    <string name="archive_title">الأرشيف</string>
+    <string name="archive_subtitle">هادئ حتى يصلك جديد</string>
+    <string name="archive_empty">الأرشيف فارغ</string>
+    <string name="trash_title">سلة المحذوفات</string>
+    <string name="trash_subtitle">سيتم حذف العناصر في السلة نهائياً بعد 7 أيام.</string>
+    <string name="trash_empty">لا توجد رسائل في السلة</string>
+    <string name="empty_trash">إفراغ السلة</string>
+    <string name="contacts_title">جهات الاتصال</string>
+    <string name="contacts_empty">لم يتم العثور على جهات اتصال</string>
+
+    <!-- Settings Hub -->
+    <string name="settings_title">الإعدادات</string>
+    <string name="section_appearance">المظهر</string>
+    <string name="section_layout">التخطيط والترتيب</string>
+    <string name="section_autodelete_lang">الحذف التلقائي واللغة</string>
+    <string name="section_about">حول التطبيق</string>
+    <string name="tile_background">الخلفية</string>
+    <string name="tile_background_desc">النقش والملمس وتصميم المظهر</string>
+    <string name="tile_nav_buttons">التنقل والأزرار والبحث</string>
+    <string name="tile_nav_buttons_desc">ارتفاع الشريط وحجم الزر وتلميح البحث</string>
+    <string name="tile_categories">التصنيفات</string>
+    <string name="tile_categories_desc">تفعيل وتلوين تصنيف الرسائل</string>
+    <string name="tile_autodelete">قواعد الحذف التلقائي</string>
+    <string name="tile_language">اللغة</string>
+    <string name="tile_language_desc">لغة التطبيق والخط</string>
+
+    <!-- Auto-Delete & Language -->
+    <string name="otp_autodelete_title">حذف رموز التحقق تلقائياً بعد:</string>
+    <string name="spam_autodelete_title">الرسائل غير المرغوب فيها</string>
+    <string name="spam_autodelete_desc">حذف الرسائل غير المرغوب فيها تلقائياً بعد:</string>
+    <string name="recycle_bin_title">سلة المحذوفات</string>
+    <string name="recycle_bin_desc">الاحتفاظ بالرسائل المحذوفة لمدة:</string>
+    <string name="starred_never_deleted">لا يتم حذف الرسائل المميزة بنجمة تلقائياً.</string>
+
+    <!-- Language Names -->
+    <string name="lang_system">افتراضي النظام</string>
+    <string name="lang_en">الإنجليزية</string>
+    <string name="lang_es">الإسبانية</string>
+    <string name="lang_fr">الفرنسية</string>
+    <string name="lang_de">الألمانية</string>
+    <string name="lang_ru">الروسية</string>
+    <string name="lang_pl">البولندية</string>
+    <string name="lang_hu">المجرية</string>
+    <string name="lang_ar">العربية</string>
+    <string name="lang_it">الإيطالية</string>
+    <string name="lang_pt">البرتغالية</string>
+
+    <!-- Chat & Action Details -->
+    <string name="type_message">اكتب رسالة…</string>
+    <string name="send">إرسال</string>
+    <string name="call">اتصال</string>
+    <string name="block">حظر</string>
+    <string name="delete_conversation">حذف المحادثة</string>
+    <string name="copy_code">نسخ الرمز</string>
+    <string name="code_copied">تم نسخ الرمز</string>
+
+    <!-- Time Durations -->
+    <string name="time_never">أبداً</string>
+    <string name="time_1_hour">ساعة واحدة</string>
+    <string name="time_24_hours">24 ساعة</string>
+    <string name="time_7_days">7 أيام</string>
+    <string name="time_30_days">30 يوماً</string>
+    <string name="time_60_days">60 يوماً</string>
+</resources>

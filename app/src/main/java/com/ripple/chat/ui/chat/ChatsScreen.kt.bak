@@ -1,0 +1,1792 @@
+package com.ripple.chat.ui.chat
+
+import android.Manifest
+import android.app.role.RoleManager
+import android.content.ClipboardManager
+import android.content.ClipData
+import android.widget.Toast
+import android.content.Context
+import android.content.pm.PackageManager
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.foundation.Canvas
+import com.ripple.chat.ui.components.MessageCard
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.unit.IntOffset
+import kotlin.math.roundToInt
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.Sort
+import androidx.compose.material.icons.rounded.ReceiptLong
+import androidx.compose.material.icons.rounded.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.StrokeJoin
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
+import com.ripple.chat.ui.tutorial.TutorialOverlay
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.ripple.chat.data.ChatThread
+import com.ripple.chat.data.SmsCategory
+import java.text.SimpleDateFormat
+import java.util.*
+import kotlinx.coroutines.launch
+
+enum class DashboardTab {
+    ALL, MESSAGES, PROMOTIONS, FINANCE, OTP, TICKETS, REMINDERS, SUBSCRIPTIONS, SHOPPING
+}
+
+enum class SortOption {
+    DATE_DESC, DATE_ASC, ALPHA_ASC, ALPHA_DESC
+}
+
+fun getCanonicalName(contact: String, existingNames: Set<String>): String {
+    var cleanedContact = contact
+    val parts = contact.split("-")
+    if (parts.size >= 2 && parts[0].length == 2) {
+        cleanedContact = parts.subList(1, parts.size).joinToString("-")
+    }
+
+    val upperContact = cleanedContact.uppercase().replace(Regex("[^A-Z0-9]"), "")
+    if (upperContact.isBlank()) return cleanedContact
+
+    for (existing in existingNames) {
+        var cleanedExisting = existing
+        val exParts = existing.split("-")
+        if (exParts.size >= 2 && exParts[0].length == 2) {
+            cleanedExisting = exParts.subList(1, exParts.size).joinToString("-")
+        }
+        val upperExisting = cleanedExisting.uppercase().replace(Regex("[^A-Z0-9]"), "")
+        if (upperExisting.isBlank()) continue
+
+        if (upperContact.length >= 3 && upperExisting.contains(upperContact)) {
+            return existing
+        }
+        if (upperExisting.length >= 3 && upperContact.contains(upperExisting)) {
+            return existing
+        }
+
+        var maxLen = 0
+        val lookup = Array(upperContact.length + 1) { IntArray(upperExisting.length + 1) }
+        for (i in 1..upperContact.length) {
+            for (j in 1..upperExisting.length) {
+                if (upperContact[i - 1] == upperExisting[j - 1]) {
+                    lookup[i][j] = lookup[i - 1][j - 1] + 1
+                    if (lookup[i][j] > maxLen) {
+                        maxLen = lookup[i][j]
+                    }
+                } else {
+                    lookup[i][j] = 0
+                }
+            }
+        }
+        if (maxLen >= 3) {
+            return existing
+        }
+    }
+    return cleanedContact
+}
+
+@Composable
+fun ChatsScreen(
+    onNavigateToChat: (String, String?) -> Unit,
+    onNavigateToSettings: () -> Unit,
+    onNavigateToProfile: (String?) -> Unit,
+    onNavigateToThemes: () -> Unit,
+    onNavigateToTrash: () -> Unit,
+    chatsViewModel: ChatsViewModel = viewModel()
+) {
+    val context = LocalContext.current
+    val threads by chatsViewModel.threads.collectAsState()
+    val isLoading by chatsViewModel.isLoading.collectAsState()
+
+    val themeSettings = remember { com.ripple.chat.data.ThemeSettings(context) }
+    val themeConfig by themeSettings.themeConfigFlow.collectAsState(initial = null)
+    val enableCategorization = themeConfig?.enableCategorization ?: true
+    
+    var currentSort by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(SortOption.DATE_DESC) }
+
+    var hasSmsPermission by remember {
+        mutableStateOf(
+            ContextCompat.checkSelfPermission(context, Manifest.permission.READ_SMS) == PackageManager.PERMISSION_GRANTED
+        )
+    }
+    
+    val sharedPrefs = context.getSharedPreferences("RippleChatPrefs", Context.MODE_PRIVATE)
+    var showTutorial by remember { mutableStateOf(!sharedPrefs.getBoolean("hasCompletedTutorial", false)) }
+    var hasCompletedInitialScan by remember { mutableStateOf(sharedPrefs.getBoolean("hasCompletedInitialScan", false)) }
+    
+    var isDefaultSmsApp by remember { mutableStateOf(true) }
+
+    val smsPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        hasSmsPermission = isGranted
+        if (isGranted) chatsViewModel.loadThreads()
+    }
+
+    val roleLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            val roleManager = context.getSystemService(Context.ROLE_SERVICE) as RoleManager
+            isDefaultSmsApp = roleManager.isRoleHeld(RoleManager.ROLE_SMS)
+        }
+    }
+
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                val isGranted = ContextCompat.checkSelfPermission(context, Manifest.permission.READ_SMS) == PackageManager.PERMISSION_GRANTED
+                hasSmsPermission = isGranted
+                
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    val roleManager = context.getSystemService(Context.ROLE_SERVICE) as RoleManager
+                    isDefaultSmsApp = roleManager.isRoleHeld(RoleManager.ROLE_SMS)
+                }
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
+
+    LaunchedEffect(hasSmsPermission) {
+        if (!hasSmsPermission) {
+            smsPermissionLauncher.launch(Manifest.permission.READ_SMS)
+        } else {
+            chatsViewModel.loadThreads()
+            
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                val roleManager = context.getSystemService(Context.ROLE_SERVICE) as RoleManager
+                isDefaultSmsApp = roleManager.isRoleHeld(RoleManager.ROLE_SMS)
+                
+                if (!isDefaultSmsApp) {
+                    try {
+                        val intent = roleManager.createRequestRoleIntent(RoleManager.ROLE_SMS)
+                        roleLauncher.launch(intent)
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                }
+            }
+        }
+    }
+
+    val sortedThreads = remember(threads, currentSort) {
+        when (currentSort) {
+            SortOption.DATE_DESC -> threads.sortedByDescending { it.date }
+            SortOption.DATE_ASC -> threads.sortedBy { it.date }
+            SortOption.ALPHA_ASC -> threads.sortedBy { (it.contactName ?: it.address).lowercase() }
+            SortOption.ALPHA_DESC -> threads.sortedByDescending { (it.contactName ?: it.address).lowercase() }
+        }
+    }
+
+    val enabledCategories = themeConfig?.enabledCategories ?: com.ripple.chat.data.ThemeSettings.DEFAULT_CATEGORIES
+    val isCategoryEnabled = { category: SmsCategory -> 
+        category == SmsCategory.PERSONAL || enabledCategories.contains(if (category == SmsCategory.PROMOTIONAL) "PROMOTIONS" else category.name)
+    }
+
+    val chats = sortedThreads.filter { !isCategoryEnabled(it.category) || it.category == SmsCategory.PERSONAL }
+    val allMessages = sortedThreads
+    val promotions = sortedThreads.filter { it.category == SmsCategory.PROMOTIONAL }
+    val finance = sortedThreads.filter { it.category == SmsCategory.FINANCE }
+    
+    val creditSources = remember(finance) {
+        val map = mutableMapOf<String, Double>()
+        finance.forEach { thread ->
+            val body = thread.body.lowercase()
+            val isExcluded = body.contains("interest") || body.contains("pf") || body.contains("uan") || body.contains("wallet")
+            if (!isExcluded && (body.contains("credit") || body.contains("received") || body.contains("neft") || body.contains("deposited"))) {
+                val amount = extractAmount(body)
+                if (amount > 0) {
+                    val contact = thread.contactName ?: thread.address
+                    val canonicalContact = getCanonicalName(contact, map.keys)
+                    map[canonicalContact] = (map[canonicalContact] ?: 0.0) + amount
+                }
+            }
+        }
+        map
+    }
+    val totalCredit = creditSources.values.sum()
+    
+    val debitSources = remember(finance) {
+        val map = mutableMapOf<String, Double>()
+        finance.forEach { thread ->
+            val body = thread.body.lowercase()
+            val isExcluded = body.contains("interest") || body.contains("pf") || body.contains("uan") || body.contains("wallet")
+            val isCredit = body.contains("credit") || body.contains("received") || body.contains("neft") || body.contains("deposited")
+            val isDebit = ((body.contains("sent") || body.contains("txn") || body.contains("debit") || body.contains("deducted") || body.contains("spent") || body.contains("paid")) && !isCredit) || body.contains("sent") || body.contains("debit")
+            if (!isExcluded && isDebit) {
+                val amount = extractAmount(body)
+                if (amount > 0) {
+                    val contact = thread.contactName ?: thread.address
+                    val canonicalContact = getCanonicalName(contact, map.keys)
+                    map[canonicalContact] = (map[canonicalContact] ?: 0.0) + amount
+                }
+            }
+        }
+        map
+    }
+    val totalDebit = debitSources.values.sum()
+
+    var otpAutoDeleteMins by androidx.compose.runtime.saveable.rememberSaveable { androidx.compose.runtime.mutableIntStateOf(5) }
+    val otp = sortedThreads.filter { 
+        it.category == SmsCategory.OTP && 
+        (System.currentTimeMillis() - it.date) <= otpAutoDeleteMins * 60 * 1000L 
+    }
+    val tickets = sortedThreads.filter { it.category == SmsCategory.TICKETS }
+    val reminders = sortedThreads.filter { it.category == SmsCategory.REMINDERS }
+    val subscriptions = sortedThreads.filter { it.category == SmsCategory.SUBSCRIPTIONS }
+    val shopping = sortedThreads.filter { it.category == SmsCategory.SHOPPING }
+    
+    var selectedTab by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(DashboardTab.MESSAGES) }
+    var searchQuery by remember { mutableStateOf("") }
+    var showSortMenu by remember { mutableStateOf(false) }
+    
+    var showOnlyToday by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(false) }
+    
+    var isSelectionMode by remember { mutableStateOf(false) }
+    var selectedThreadIds by remember { mutableStateOf(setOf<Long>()) }
+    
+    var showCreditChart by remember { mutableStateOf(false) }
+    var showDebitChart by remember { mutableStateOf(false) }
+    
+    var groupedFinanceContact by remember { mutableStateOf<String?>(null) }
+    var groupedFinanceIsCredit by remember { mutableStateOf(true) }
+
+    val focusManager = androidx.compose.ui.platform.LocalFocusManager.current
+    var isSearchFocused by remember { mutableStateOf(false) }
+
+    androidx.activity.compose.BackHandler(enabled = isSearchFocused || isSelectionMode || groupedFinanceContact != null) {
+        if (groupedFinanceContact != null) {
+            groupedFinanceContact = null
+        } else if (isSearchFocused) {
+            focusManager.clearFocus()
+            isSearchFocused = false
+        }
+        if (isSelectionMode) {
+            isSelectionMode = false
+            selectedThreadIds = emptySet()
+        }
+    }
+
+    val cornerRadius = themeConfig?.cornerRadius ?: 24f
+    val cornerRadiusDp = cornerRadius.dp
+
+    val topBgColor = MaterialTheme.colorScheme.surface
+    val bottomBgColor = MaterialTheme.colorScheme.background
+    val surfaceColor = MaterialTheme.colorScheme.surfaceVariant
+    val searchPillColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f)
+    val onBgColor = MaterialTheme.colorScheme.onSurface // Better contrast for topBgColor
+
+    val snackbarHostState = remember { SnackbarHostState() }
+    var showMenu by remember { mutableStateOf(false) }
+    
+    val coroutineScope = rememberCoroutineScope()
+    
+    val snoozeOptions = listOf("Off", "10 mins", "30 mins", "1 hr")
+    var snoozeIndex by remember { mutableStateOf(0) }
+    val reminderAlarmManager = remember { com.ripple.chat.data.ReminderAlarmManager(context) }
+
+    LaunchedEffect(selectedThreadIds) {
+        if (selectedThreadIds.size == 1) {
+            val threadId = selectedThreadIds.first()
+            val interval = reminderAlarmManager.getSnoozeInterval(threadId)
+            snoozeIndex = when (interval) {
+                10 -> 1
+                30 -> 2
+                60 -> 3
+                else -> 0
+            }
+        } else if (selectedThreadIds.isEmpty()) {
+            snoozeIndex = 0
+        }
+    }
+    
+    // Reset snooze state when selection mode is off
+    LaunchedEffect(isSelectionMode) {
+        if (!isSelectionMode) {
+            snoozeIndex = 0
+        }
+    }
+
+    Box(modifier = Modifier.fillMaxSize().background(topBgColor)) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .statusBarsPadding()
+        ) {
+            // --- Top Bar (Title + Search) ---
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp, vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Title, Logo, and SMS Badge
+                Column(
+                    modifier = Modifier.padding(end = 16.dp),
+                    horizontalAlignment = Alignment.Start
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.Top
+                    ) {
+                        Text(
+                            text = "Brome",
+                            color = onBgColor,
+                            fontSize = 24.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            fontFamily = FontFamily.Serif
+                        )
+                        Box(
+                            modifier = Modifier.size(26.dp).offset(x = 2.dp, y = (-2).dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                Icons.Rounded.ChatBubble,
+                                contentDescription = "Logo",
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.fillMaxSize()
+                            )
+                            Text(
+                                text = "${threads.size}",
+                                color = MaterialTheme.colorScheme.onPrimary,
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(bottom = 2.dp)
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Box(
+                        modifier = Modifier
+                            .background(
+                                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
+                                shape = RoundedCornerShape(6.dp)
+                            )
+                            .padding(horizontal = 6.dp, vertical = 2.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "MESSAGES",
+                            color = MaterialTheme.colorScheme.primary,
+                            fontSize = 9.sp,
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = 1.sp
+                        )
+                    }
+                }
+
+                // --- Search Bar ---
+                Row(
+                    modifier = Modifier
+                        .weight(1f)
+                        .background(searchPillColor, RoundedCornerShape(cornerRadiusDp))
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(Icons.Rounded.Search, contentDescription = "Search", tint = onBgColor.copy(alpha = 0.5f), modifier = Modifier.size(20.dp))
+                    Spacer(modifier = Modifier.width(12.dp))
+                    androidx.compose.foundation.text.BasicTextField(
+                        value = searchQuery,
+                        onValueChange = { searchQuery = it },
+                        modifier = Modifier
+                            .weight(1f)
+                            .onFocusChanged { 
+                                isSearchFocused = it.isFocused 
+                                if (it.isFocused) {
+                                    isSelectionMode = false
+                                    selectedThreadIds = emptySet()
+                                }
+                            },
+                        textStyle = androidx.compose.ui.text.TextStyle(color = onBgColor, fontSize = 15.sp),
+                        singleLine = true,
+                        decorationBox = { innerTextField ->
+                            if (searchQuery.isEmpty()) {
+                                Text("Search", color = onBgColor.copy(alpha = 0.5f), fontSize = 15.sp)
+                            }
+                            innerTextField()
+                        }
+                    )
+                    if (searchQuery.isNotEmpty()) {
+                        Spacer(modifier = Modifier.width(4.dp))
+                        IconButton(
+                            onClick = { searchQuery = "" },
+                            modifier = Modifier.size(32.dp)
+                        ) {
+                            Icon(
+                                Icons.Rounded.Close,
+                                contentDescription = "Clear",
+                                tint = onBgColor.copy(alpha = 0.5f),
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Box {
+                        IconButton(
+                            onClick = { showSortMenu = true },
+                            modifier = Modifier.size(32.dp)
+                        ) {
+                            Icon(
+                                Icons.AutoMirrored.Rounded.Sort,
+                                contentDescription = "Sort",
+                                tint = onBgColor.copy(alpha = 0.5f),
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                        DropdownMenu(
+                            expanded = showSortMenu,
+                            onDismissRequest = { showSortMenu = false },
+                            shape = RoundedCornerShape(cornerRadiusDp),
+                            modifier = Modifier.background(MaterialTheme.colorScheme.surfaceVariant)
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text("Date", color = MaterialTheme.colorScheme.onSurface) },
+                                onClick = { 
+                                    showSortMenu = false
+                                    currentSort = if (currentSort == SortOption.DATE_DESC) SortOption.DATE_ASC else SortOption.DATE_DESC
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Alphabetical", color = MaterialTheme.colorScheme.onSurface) },
+                                onClick = { 
+                                    showSortMenu = false
+                                    currentSort = if (currentSort == SortOption.ALPHA_ASC) SortOption.ALPHA_DESC else SortOption.ALPHA_ASC
+                                }
+                            )
+                        }
+                    }
+
+                    IconButton(
+                        onClick = { 
+                            isSelectionMode = false
+                            selectedThreadIds = emptySet()
+                            onNavigateToTrash() 
+                        },
+                        modifier = Modifier.size(32.dp)
+                    ) {
+                        Icon(
+                            Icons.Rounded.Delete,
+                            contentDescription = "Trash",
+                            tint = onBgColor.copy(alpha = 0.5f),
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(4.dp))
+                    IconButton(
+                        onClick = { 
+                            isSelectionMode = false
+                            selectedThreadIds = emptySet()
+                            onNavigateToSettings() 
+                        },
+                        modifier = Modifier.size(32.dp)
+                    ) {
+                        Icon(
+                            Icons.Rounded.Settings,
+                            contentDescription = "Settings",
+                            tint = onBgColor.copy(alpha = 0.5f),
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                }
+            }
+
+            // Default App Warning Banner
+            if (!isDefaultSmsApp && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp, vertical = 8.dp)
+                        .background(MaterialTheme.colorScheme.errorContainer, RoundedCornerShape(cornerRadiusDp))
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null
+                        ) {
+                            val roleManager = context.getSystemService(Context.ROLE_SERVICE) as RoleManager
+                            roleLauncher.launch(roleManager.createRequestRoleIntent(RoleManager.ROLE_SMS))
+                        }
+                        .padding(16.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        "Tap to set as Default SMS App",
+                        color = MaterialTheme.colorScheme.onErrorContainer,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp
+                    )
+                }
+            }
+
+            // --- Dashboard Chips ---
+            val chipScrollState = rememberLazyListState()
+            
+            val tabsArray = if (enableCategorization) {
+                val dynamicTabs = mutableListOf(DashboardTab.MESSAGES)
+                if (enabledCategories.contains("FINANCE")) dynamicTabs.add(DashboardTab.FINANCE)
+                if (enabledCategories.contains("PROMOTIONS")) dynamicTabs.add(DashboardTab.PROMOTIONS)
+                if (enabledCategories.contains("OTP")) dynamicTabs.add(DashboardTab.OTP)
+                if (enabledCategories.contains("TICKETS")) dynamicTabs.add(DashboardTab.TICKETS)
+                if (enabledCategories.contains("REMINDERS")) dynamicTabs.add(DashboardTab.REMINDERS)
+                if (enabledCategories.contains("SUBSCRIPTIONS")) dynamicTabs.add(DashboardTab.SUBSCRIPTIONS)
+                if (enabledCategories.contains("SHOPPING")) dynamicTabs.add(DashboardTab.SHOPPING)
+                dynamicTabs.toTypedArray()
+            } else {
+                arrayOf(DashboardTab.MESSAGES, DashboardTab.ALL)
+            }
+            val totalPages = 1000000
+            val startIndex = totalPages / 2
+            val initialPage = startIndex - (startIndex % tabsArray.size) + (tabsArray.indexOf(selectedTab).takeIf { it >= 0 } ?: 0)
+            
+            val pagerState = androidx.compose.foundation.pager.rememberPagerState(
+                initialPage = initialPage,
+                pageCount = { totalPages }
+            )
+            
+            // Sync selectedTab -> Pager
+            LaunchedEffect(selectedTab) {
+                val currentTab = tabsArray[(pagerState.currentPage % tabsArray.size + tabsArray.size) % tabsArray.size]
+                if (currentTab != selectedTab) {
+                    val targetIndex = tabsArray.indexOf(selectedTab).takeIf { it >= 0 } ?: 0
+                    val currentIndex = tabsArray.indexOf(currentTab).takeIf { it >= 0 } ?: 0
+                    var targetPage = pagerState.currentPage + (targetIndex - currentIndex)
+                    while ((targetPage % tabsArray.size + tabsArray.size) % tabsArray.size != targetIndex) {
+                        targetPage++
+                    }
+                    if (kotlin.math.abs(targetPage - pagerState.currentPage) > 1) {
+                        pagerState.scrollToPage(targetPage)
+                    } else {
+                        pagerState.animateScrollToPage(targetPage)
+                    }
+                }
+            }
+            
+            // Sync Pager -> selectedTab
+            LaunchedEffect(pagerState.currentPage) {
+                val currentTab = tabsArray[(pagerState.currentPage % tabsArray.size + tabsArray.size) % tabsArray.size]
+                if (currentTab != selectedTab) {
+                    selectedTab = currentTab
+                    isSelectionMode = false
+                    selectedThreadIds = emptySet()
+                }
+            }
+
+            LaunchedEffect(selectedTab) {
+                val index = tabsArray.indexOf(selectedTab)
+                if (index >= 0) {
+                    chipScrollState.animateScrollToItem(index)
+                }
+            }
+
+            if (enableCategorization) {
+                val currentList = when (selectedTab) {
+                    DashboardTab.MESSAGES -> chats
+                    DashboardTab.PROMOTIONS -> promotions
+                    DashboardTab.FINANCE -> finance
+                    DashboardTab.OTP -> otp
+                    DashboardTab.TICKETS -> tickets
+                    DashboardTab.REMINDERS -> reminders
+                    DashboardTab.SUBSCRIPTIONS -> subscriptions
+                    DashboardTab.SHOPPING -> shopping
+                    else -> allMessages
+                }
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    LazyRow(
+                        modifier = Modifier.weight(1f),
+                        state = chipScrollState,
+                        contentPadding = PaddingValues(start = 16.dp, end = 12.dp),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        item {
+                        DashboardChip(
+                            count = chats.size.toString(),
+                            icon = Icons.Rounded.ChatBubble,
+                            isSelected = selectedTab == DashboardTab.MESSAGES,
+                            hasUnread = chats.any { !it.read },
+                            onClick = { selectedTab = DashboardTab.MESSAGES },
+                            cornerRadius = cornerRadiusDp
+                        )
+                    }
+                    if (enabledCategories.contains("FINANCE")) {
+                        item {
+                            DashboardChip(
+                                count = finance.size.toString(),
+                                icon = Icons.Rounded.AccountBalanceWallet,
+                                isSelected = selectedTab == DashboardTab.FINANCE,
+                                hasUnread = finance.any { !it.read },
+                                onClick = { selectedTab = DashboardTab.FINANCE },
+                                cornerRadius = cornerRadiusDp
+                            )
+                        }
+                    }
+                    if (enabledCategories.contains("PROMOTIONS")) {
+                        item {
+                            DashboardChip(
+                                count = promotions.size.toString(),
+                                icon = Icons.Rounded.LocalOffer,
+                                isSelected = selectedTab == DashboardTab.PROMOTIONS,
+                                hasUnread = promotions.any { !it.read },
+                                onClick = { selectedTab = DashboardTab.PROMOTIONS },
+                                cornerRadius = cornerRadiusDp
+                            )
+                        }
+                    }
+                    if (enabledCategories.contains("OTP")) {
+                        item {
+                            DashboardChip(
+                                count = otp.size.toString(),
+                                icon = Icons.Rounded.Security,
+                                isSelected = selectedTab == DashboardTab.OTP,
+                                hasUnread = otp.any { !it.read },
+                                onClick = { selectedTab = DashboardTab.OTP },
+                                cornerRadius = cornerRadiusDp
+                            )
+                        }
+                    }
+                    if (enabledCategories.contains("TICKETS")) {
+                        item {
+                            DashboardChip(
+                                count = tickets.size.toString(),
+                                icon = Icons.Rounded.ConfirmationNumber,
+                                isSelected = selectedTab == DashboardTab.TICKETS,
+                                hasUnread = tickets.any { !it.read },
+                                onClick = { selectedTab = DashboardTab.TICKETS },
+                                cornerRadius = cornerRadiusDp
+                            )
+                        }
+                    }
+                    if (enabledCategories.contains("REMINDERS")) {
+                        item {
+                            DashboardChip(
+                                count = reminders.size.toString(),
+                                icon = Icons.Rounded.NotificationsActive,
+                                isSelected = selectedTab == DashboardTab.REMINDERS,
+                                hasUnread = reminders.any { !it.read },
+                                onClick = { selectedTab = DashboardTab.REMINDERS },
+                                cornerRadius = cornerRadiusDp
+                            )
+                        }
+                    }
+                    if (enabledCategories.contains("SUBSCRIPTIONS")) {
+                        item {
+                            DashboardChip(
+                                count = subscriptions.size.toString(),
+                                icon = Icons.Rounded.Subscriptions,
+                                isSelected = selectedTab == DashboardTab.SUBSCRIPTIONS,
+                                hasUnread = subscriptions.any { !it.read },
+                                onClick = { selectedTab = DashboardTab.SUBSCRIPTIONS },
+                                cornerRadius = cornerRadiusDp
+                            )
+                        }
+                    }
+                    if (enabledCategories.contains("SHOPPING")) {
+                        item {
+                            DashboardChip(
+                                count = shopping.size.toString(),
+                                icon = Icons.Rounded.ShoppingCart,
+                                isSelected = selectedTab == DashboardTab.SHOPPING,
+                                hasUnread = shopping.any { !it.read },
+                                onClick = { selectedTab = DashboardTab.SHOPPING },
+                                cornerRadius = cornerRadiusDp
+                            )
+                        }
+                    }
+                }
+            }
+        } else {
+            Spacer(modifier = Modifier.height(12.dp))
+        }
+
+            // --- Filtered List in Bottom Container ---
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+                    .clip(RoundedCornerShape(topStart = cornerRadiusDp, topEnd = cornerRadiusDp))
+                    .pointerInput(isSelectionMode) {
+                        detectTapGestures {
+                            if (isSelectionMode) {
+                                isSelectionMode = false
+                                selectedThreadIds = emptySet()
+                            }
+                        }
+                    },
+                color = bottomBgColor
+            ) {
+                if (!enableCategorization) {
+                    val listToShow = if (searchQuery.isBlank()) allMessages else {
+                        allMessages.filter { 
+                            it.contactName?.contains(searchQuery, ignoreCase = true) == true || 
+                            it.address.contains(searchQuery, ignoreCase = true) ||
+                            it.body.contains(searchQuery, ignoreCase = true)
+                        }
+                    }
+                    
+                    val todayCount = listToShow.count { thread ->
+                        val now = Calendar.getInstance()
+                        val timeCalendar = Calendar.getInstance().apply { time = Date(thread.date) }
+                        now.get(Calendar.YEAR) == timeCalendar.get(Calendar.YEAR) &&
+                        now.get(Calendar.DAY_OF_YEAR) == timeCalendar.get(Calendar.DAY_OF_YEAR)
+                    }
+                    val finalFilteredList = if (showOnlyToday) listToShow.filter { thread ->
+                        val now = Calendar.getInstance()
+                        val timeCalendar = Calendar.getInstance().apply { time = Date(thread.date) }
+                        now.get(Calendar.YEAR) == timeCalendar.get(Calendar.YEAR) &&
+                        now.get(Calendar.DAY_OF_YEAR) == timeCalendar.get(Calendar.DAY_OF_YEAR)
+                    } else listToShow
+                    
+                    if (listToShow.isNotEmpty()) {
+                        LazyColumn(
+                            modifier = Modifier.fillMaxSize(),
+                            contentPadding = PaddingValues(top = 16.dp, bottom = 120.dp, start = 16.dp, end = 16.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            item { 
+                                SectionHeader(
+                                    title = "All Messages", 
+                                    cornerRadius = cornerRadiusDp,
+                                    isSelectionMode = isSelectionMode,
+                                    onSelectAll = { selectedThreadIds = finalFilteredList.map { it.threadId }.toSet() },
+                                    onDeselectAll = { selectedThreadIds = emptySet(); isSelectionMode = false }
+                                ) 
+                            }
+                            itemsIndexed(finalFilteredList, key = { _, thread -> thread.threadId }) { _, thread ->
+                                ChatRowCard(
+                                    modifier = Modifier.animateItem(),
+                                    thread = thread,
+                                    bgColor = bottomBgColor,
+                                    surfaceColor = surfaceColor,
+                                    searchQuery = searchQuery,
+                                    cornerRadius = cornerRadiusDp,
+                                    onClick = { 
+                                        chatsViewModel.markAsRead(thread.threadId)
+                                        onNavigateToChat(thread.threadId.toString(), thread.address) 
+                                    },
+                                    onLongClick = {
+                                        isSelectionMode = true
+                                        selectedThreadIds = setOf(thread.threadId)
+                                    },
+                                    onSwipeRight = null, // Disabled when not categorized (essentially ALL messages)
+                                    onNavigateToProfile = { 
+                                        isSelectionMode = false
+                                        selectedThreadIds = emptySet()
+                                        onNavigateToProfile(thread.address) 
+                                    },
+                                    isSelectionMode = isSelectionMode,
+                                    isSelected = selectedThreadIds.contains(thread.threadId),
+                                    onSelectToggle = { selected ->
+                                        if (selected) selectedThreadIds += thread.threadId
+                                        else {
+                                            selectedThreadIds -= thread.threadId
+                                            if (selectedThreadIds.isEmpty()) isSelectionMode = false
+                                        }
+                                    }
+                                )
+                            }
+                        }
+                    } else {
+                        Box(modifier = Modifier.fillMaxSize().padding(top = 40.dp), contentAlignment = Alignment.TopCenter) {
+                            Text("No messages.", color = onBgColor.copy(alpha = 0.5f), fontSize = 14.sp)
+                        }
+                    }
+                } else {
+                    androidx.compose.foundation.pager.HorizontalPager(
+                        state = pagerState,
+                        modifier = Modifier.fillMaxSize()
+                    ) { page ->
+                        val currentTab = tabsArray[(page % tabsArray.size + tabsArray.size) % tabsArray.size]
+                        
+                        val baseList = when (currentTab) {
+                            DashboardTab.ALL -> allMessages
+                            DashboardTab.MESSAGES -> chats
+                            DashboardTab.PROMOTIONS -> promotions
+                            DashboardTab.FINANCE -> finance
+                            DashboardTab.OTP -> otp
+                            DashboardTab.TICKETS -> tickets
+                            DashboardTab.REMINDERS -> reminders
+                            DashboardTab.SUBSCRIPTIONS -> subscriptions
+                            DashboardTab.SHOPPING -> shopping
+                        }
+                        val listToShow = if (searchQuery.isBlank()) baseList else {
+                            baseList.filter { 
+                                it.contactName?.contains(searchQuery, ignoreCase = true) == true || 
+                                it.address.contains(searchQuery, ignoreCase = true) ||
+                                it.body.contains(searchQuery, ignoreCase = true)
+                            }
+                        }
+                        
+                        val tabTitle = when (currentTab) {
+                            DashboardTab.ALL -> "All Messages"
+                            DashboardTab.MESSAGES -> "Messages"
+                            DashboardTab.PROMOTIONS -> "Promotions"
+                            DashboardTab.FINANCE -> "Finance"
+                            DashboardTab.OTP -> "OTP"
+                            DashboardTab.TICKETS -> "Tickets"
+                            DashboardTab.REMINDERS -> "Reminders"
+                            DashboardTab.SUBSCRIPTIONS -> "Subscriptions"
+                            DashboardTab.SHOPPING -> "Shopping"
+                        }
+                        
+                        val todayCount = listToShow.count { thread ->
+                            val now = Calendar.getInstance()
+                            val timeCalendar = Calendar.getInstance().apply { time = Date(thread.date) }
+                            now.get(Calendar.YEAR) == timeCalendar.get(Calendar.YEAR) &&
+                            now.get(Calendar.DAY_OF_YEAR) == timeCalendar.get(Calendar.DAY_OF_YEAR)
+                        }
+                        val finalFilteredList = if (showOnlyToday) listToShow.filter { thread ->
+                            val now = Calendar.getInstance()
+                            val timeCalendar = Calendar.getInstance().apply { time = Date(thread.date) }
+                            now.get(Calendar.YEAR) == timeCalendar.get(Calendar.YEAR) &&
+                            now.get(Calendar.DAY_OF_YEAR) == timeCalendar.get(Calendar.DAY_OF_YEAR)
+                        } else listToShow
+                        
+                        if (listToShow.isNotEmpty()) {
+                            LazyColumn(
+                                modifier = Modifier.fillMaxSize(),
+                                contentPadding = PaddingValues(top = 16.dp, bottom = 120.dp, start = 16.dp, end = 16.dp),
+                                verticalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                item { 
+                                    SectionHeader(
+                                        title = tabTitle, 
+                                        cornerRadius = cornerRadiusDp,
+                                        totalCredit = if (selectedTab == DashboardTab.FINANCE) totalCredit else null,
+                                        totalDebit = if (selectedTab == DashboardTab.FINANCE) totalDebit else null,
+                                        onCreditClick = { showCreditChart = true },
+                                        onDebitClick = { showDebitChart = true },
+                                        isSelectionMode = isSelectionMode,
+                                        onSelectAll = { selectedThreadIds = finalFilteredList.map { it.threadId }.toSet() },
+                                        onDeselectAll = { selectedThreadIds = emptySet(); isSelectionMode = false },
+                                        snoozeLabel = if (selectedTab == DashboardTab.REMINDERS) snoozeOptions[snoozeIndex] else null,
+                                        onSnoozeClick = if (selectedTab == DashboardTab.REMINDERS) {
+                                            {
+                                                snoozeIndex = (snoozeIndex + 1) % snoozeOptions.size
+                                                if (snoozeIndex == 0) {
+                                                    reminderAlarmManager.cancelSnooze(selectedThreadIds.toList())
+                                                    coroutineScope.launch { snackbarHostState.showSnackbar("Snooze cancelled.") }
+                                                } else {
+                                                    val interval = when (snoozeIndex) {
+                                                        1 -> 10
+                                                        2 -> 30
+                                                        3 -> 60
+                                                        else -> 10
+                                                    }
+                                                    reminderAlarmManager.setRepeatingSnooze(selectedThreadIds.toList(), interval)
+                                                    coroutineScope.launch { snackbarHostState.showSnackbar("Snoozed for ${snoozeOptions[snoozeIndex]}") }
+                                                }
+                                            }
+                                        } else null,
+                                        otpAutoDeleteMins = if (selectedTab == DashboardTab.OTP) otpAutoDeleteMins else null,
+                                        onOtpAutoDeleteClick = if (selectedTab == DashboardTab.OTP) {
+                                            {
+                                                otpAutoDeleteMins = when(otpAutoDeleteMins) {
+                                                    5 -> 10
+                                                    10 -> 15
+                                                    15 -> 20
+                                                    20 -> 30
+                                                    else -> 5
+                                                }
+                                            }
+                                        } else null,
+                                        onMarkAllRead = if (!isSelectionMode) { { finalFilteredList.forEach { if (!it.read) chatsViewModel.markAsRead(it.threadId) } } } else null,
+                                        onMarkAllUnread = if (!isSelectionMode) { { finalFilteredList.forEach { if (it.read) chatsViewModel.markAsUnread(it.threadId) } } } else null
+                                    ) 
+                                }
+                                
+                                val now = Calendar.getInstance()
+                                val todayYear = now.get(Calendar.YEAR)
+                                val todayDay = now.get(Calendar.DAY_OF_YEAR)
+                                
+                                val todayList = finalFilteredList.filter {
+                                    val cal = Calendar.getInstance().apply { time = Date(it.date) }
+                                    cal.get(Calendar.YEAR) == todayYear && cal.get(Calendar.DAY_OF_YEAR) == todayDay
+                                }
+                                val yesterdayList = finalFilteredList.filter {
+                                    val cal = Calendar.getInstance().apply { time = Date(it.date) }
+                                    cal.add(Calendar.DAY_OF_YEAR, 1) // Add one day to thread date, if it matches today, it was yesterday
+                                    cal.get(Calendar.YEAR) == todayYear && cal.get(Calendar.DAY_OF_YEAR) == todayDay
+                                }
+                                val olderList = finalFilteredList.filter { thread ->
+                                    !todayList.contains(thread) && !yesterdayList.contains(thread)
+                                }
+                                
+                                val groupedLists = listOf(
+                                    "Today" to todayList,
+                                    "Yesterday" to yesterdayList,
+                                    "Older" to olderList
+                                )
+                                
+                                groupedLists.forEach { (sectionTitle, sectionList) ->
+                                    if (sectionList.isNotEmpty()) {
+                                        item { DateSectionHeader(title = sectionTitle, cornerRadius = cornerRadiusDp) }
+                                        itemsIndexed(sectionList, key = { _, thread -> thread.threadId }) { _, thread ->
+                                            ChatRowCard(
+                                                modifier = Modifier.animateItem(),
+                                                thread = thread,
+                                                bgColor = bottomBgColor,
+                                                surfaceColor = surfaceColor,
+                                                searchQuery = searchQuery,
+                                                cornerRadius = cornerRadiusDp,
+                                                onClick = { 
+                                                    chatsViewModel.markAsRead(thread.threadId)
+                                                    onNavigateToChat(thread.threadId.toString(), thread.address) 
+                                                },
+                                                onLongClick = {
+                                                    isSelectionMode = true
+                                                    selectedThreadIds = setOf(thread.threadId)
+                                                },
+                                                onSwipeRight = if (thread.category != SmsCategory.PERSONAL) {
+                                                    {
+                                                        if (thread.read) chatsViewModel.markAsUnread(thread.threadId)
+                                                        else chatsViewModel.markAsRead(thread.threadId)
+                                                    }
+                                                } else null,
+                                                onNavigateToProfile = { 
+                                                    isSelectionMode = false
+                                                    selectedThreadIds = emptySet()
+                                                    onNavigateToProfile(thread.address) 
+                                                },
+                                                isSelectionMode = isSelectionMode,
+                                                isSelected = selectedThreadIds.contains(thread.threadId),
+                                                onSelectToggle = { selected ->
+                                                    if (selected) selectedThreadIds += thread.threadId
+                                                    else {
+                                                        selectedThreadIds -= thread.threadId
+                                                        if (selectedThreadIds.isEmpty()) isSelectionMode = false
+                                                    }
+                                                }
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        } else {
+                            LazyColumn(
+                                modifier = Modifier.fillMaxSize(),
+                                contentPadding = PaddingValues(top = 16.dp, bottom = 120.dp, start = 16.dp, end = 16.dp),
+                                verticalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                item { 
+                                    SectionHeader(
+                                        title = tabTitle, 
+                                        cornerRadius = cornerRadiusDp,
+                                        totalCredit = if (selectedTab == DashboardTab.FINANCE) totalCredit else null,
+                                        totalDebit = if (selectedTab == DashboardTab.FINANCE) totalDebit else null,
+                                        onCreditClick = { showCreditChart = true },
+                                        onDebitClick = { showDebitChart = true }
+                                    ) 
+                                }
+                                item {
+                                    Box(modifier = Modifier.fillMaxWidth().padding(top = 40.dp), contentAlignment = Alignment.Center) {
+                                        Text("No messages in this category.", color = onBgColor.copy(alpha = 0.5f), fontSize = 14.sp)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        if (showCreditChart) {
+            com.ripple.chat.ui.components.PieChartDialog(
+                title = "Income",
+                data = creditSources,
+                onDismiss = { showCreditChart = false },
+                onItemClick = { contactName ->
+                    showCreditChart = false
+                    groupedFinanceContact = contactName
+                    groupedFinanceIsCredit = true
+                }
+            )
+        }
+        
+        if (showDebitChart) {
+            com.ripple.chat.ui.components.PieChartDialog(
+                title = "Expenses",
+                data = debitSources,
+                onDismiss = { showDebitChart = false },
+                onItemClick = { contactName ->
+                    showDebitChart = false
+                    groupedFinanceContact = contactName
+                    groupedFinanceIsCredit = false
+                }
+            )
+        }
+        
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 80.dp, start = 16.dp, end = 16.dp)
+        ) { data ->
+            Snackbar(
+                snackbarData = data,
+                containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                actionColor = MaterialTheme.colorScheme.primary,
+                shape = RoundedCornerShape(24.dp)
+            )
+        }
+        
+        androidx.compose.animation.AnimatedVisibility(
+            visible = isSelectionMode && selectedThreadIds.isNotEmpty() && snoozeIndex == 0,
+            enter = androidx.compose.animation.slideInVertically(initialOffsetY = { it }),
+            exit = androidx.compose.animation.slideOutVertically(targetOffsetY = { it }),
+            modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 80.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .background(MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(50))
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+            ) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    androidx.compose.material3.IconButton(onClick = {
+                        val toDelete = selectedThreadIds.toList()
+                        toDelete.forEach { chatsViewModel.deleteThread(it) }
+                        isSelectionMode = false
+                        selectedThreadIds = emptySet()
+                        coroutineScope.launch {
+                            snackbarHostState.showSnackbar(
+                                message = "Moved ${toDelete.size} message(s) to trash for 7 days",
+                                duration = SnackbarDuration.Short
+                            )
+                        }
+                    }) {
+                        Icon(Icons.Rounded.Delete, contentDescription = "Delete Selected", tint = MaterialTheme.colorScheme.onPrimaryContainer)
+                    }
+                    
+                    androidx.compose.foundation.Canvas(modifier = Modifier.height(24.dp).width(1.dp)) {
+                        drawLine(
+                            color = onBgColor.copy(alpha = 0.3f),
+                            start = Offset(0f, 0f),
+                            end = Offset(0f, size.height),
+                            strokeWidth = 2f,
+                            pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 10f), 0f)
+                        )
+                    }
+                    
+                    androidx.compose.material3.IconButton(onClick = {
+                        isSelectionMode = false
+                        selectedThreadIds = emptySet()
+                    }) {
+                        Icon(Icons.Rounded.Close, contentDescription = "Cancel Selection", tint = MaterialTheme.colorScheme.onPrimaryContainer)
+                    }
+                }
+            }
+        }
+        
+        androidx.compose.animation.AnimatedVisibility(
+            visible = groupedFinanceContact != null,
+            enter = androidx.compose.animation.slideInVertically(initialOffsetY = { it }),
+            exit = androidx.compose.animation.slideOutVertically(targetOffsetY = { it })
+        ) {
+            val matchingThreads = remember(groupedFinanceContact, groupedFinanceIsCredit, finance) {
+                finance.filter { thread ->
+                    val body = thread.body.lowercase()
+                    val isExcluded = body.contains("interest") || body.contains("pf") || body.contains("uan") || body.contains("wallet")
+                    val isCreditMsg = body.contains("credit") || body.contains("received") || body.contains("neft") || body.contains("deposited")
+                    val isDebitMsg = ((body.contains("sent") || body.contains("txn") || body.contains("debit") || body.contains("deducted") || body.contains("spent") || body.contains("paid")) && !isCreditMsg) || body.contains("sent") || body.contains("debit")
+                    
+                    val targetKeys = if (groupedFinanceIsCredit) creditSources.keys else debitSources.keys
+                    val cName = getCanonicalName(thread.contactName ?: thread.address, targetKeys)
+                    
+                    cName == groupedFinanceContact && !isExcluded && (if (groupedFinanceIsCredit) isCreditMsg else isDebitMsg) && extractAmount(body) > 0
+                }
+            }
+
+            Box(modifier = Modifier.fillMaxSize().background(topBgColor)) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .statusBarsPadding()
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 24.dp, vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        androidx.compose.material3.IconButton(
+                            onClick = { groupedFinanceContact = null },
+                            modifier = Modifier.padding(end = 8.dp)
+                        ) {
+                            Icon(
+                                Icons.Rounded.ArrowBack,
+                                contentDescription = "Back",
+                                tint = onBgColor
+                            )
+                        }
+                        Row(verticalAlignment = Alignment.Top, modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "${groupedFinanceContact} - ${if (groupedFinanceIsCredit) "Income" else "Expense"}",
+                                color = onBgColor,
+                                fontSize = 24.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                                fontFamily = FontFamily.Serif,
+                                maxLines = 1,
+                                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                            )
+                        }
+                    }
+                    
+                    Spacer(modifier = Modifier.height(16.dp))
+                    
+                    Surface(
+                        modifier = Modifier.fillMaxSize(),
+                        shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp),
+                        color = bottomBgColor
+                    ) {
+                        Box(modifier = Modifier.fillMaxSize()) {
+                            androidx.compose.foundation.lazy.LazyColumn(
+                                modifier = Modifier.fillMaxSize(),
+                                contentPadding = PaddingValues(top = 16.dp, bottom = 120.dp, start = 16.dp, end = 16.dp),
+                                verticalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                        items(matchingThreads, key = { it.threadId }) { thread ->
+                            ChatRowCard(
+                                thread = thread,
+                                bgColor = bottomBgColor,
+                                surfaceColor = surfaceColor,
+                                searchQuery = "",
+                                cornerRadius = cornerRadiusDp,
+                                onClick = {
+                                    onNavigateToChat(thread.threadId.toString(), thread.address)
+                                    if (!thread.read) chatsViewModel.markAsRead(thread.threadId)
+                                },
+                                onLongClick = {},
+                                onSwipeRight = null,
+                                onNavigateToProfile = { onNavigateToProfile(thread.address) },
+                                isSelectionMode = false,
+                                isSelected = false,
+                                onSelectToggle = {}
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+        if (showTutorial) {
+            TutorialOverlay(
+                onDismiss = {
+                    sharedPrefs.edit().putBoolean("hasCompletedTutorial", true).apply()
+                    showTutorial = false
+                }
+            )
+        }
+        
+        if (isDefaultSmsApp && !hasCompletedInitialScan) {
+            if (isLoading) {
+                androidx.compose.ui.window.Dialog(onDismissRequest = {}) {
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(MaterialTheme.colorScheme.surface)
+                            .padding(32.dp), 
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            androidx.compose.material3.CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+                            Spacer(modifier = Modifier.height(24.dp))
+                            Text(
+                                "Scanning messages...", 
+                                color = MaterialTheme.colorScheme.onSurface, 
+                                fontSize = 16.sp, 
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        }
+                    }
+                }
+            } else {
+                LaunchedEffect(Unit) {
+                    hasCompletedInitialScan = true
+                    sharedPrefs.edit().putBoolean("hasCompletedInitialScan", true).apply()
+                }
+            }
+        }
+}
+}
+
+@Composable
+fun DashboardChip(
+    count: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    isSelected: Boolean,
+    hasUnread: Boolean = false,
+    onClick: () -> Unit,
+    cornerRadius: androidx.compose.ui.unit.Dp
+) {
+    val contentColor = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
+    val interactionSource = remember { MutableInteractionSource() }
+    
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.clickable(
+            interactionSource = interactionSource,
+            indication = null
+        ) { onClick() }
+    ) {
+        Box {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                modifier = Modifier
+                    .background(
+                        if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant, 
+                        RoundedCornerShape(cornerRadius)
+                    )
+                    .padding(horizontal = 8.dp, vertical = 6.dp)
+            ) {
+                Icon(icon, contentDescription = null, tint = contentColor, modifier = Modifier.size(14.dp))
+                Text(count, color = contentColor, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+            }
+            if (hasUnread) {
+                Box(
+                    modifier = Modifier
+                        .size(8.dp)
+                        .background(Color.Red, CircleShape)
+                        .align(Alignment.TopEnd)
+                        .offset(x = 2.dp, y = (-2).dp)
+                )
+            }
+        }
+        
+        if (isSelected) {
+            Spacer(modifier = Modifier.height(4.dp))
+            SquigglyLine(color = MaterialTheme.colorScheme.primary)
+        } else {
+            Spacer(modifier = Modifier.height(8.dp)) // Maintain height
+        }
+    }
+}
+
+@Composable
+fun SquigglyLine(color: Color) {
+    Canvas(modifier = Modifier.width(32.dp).height(4.dp)) {
+        val path = Path().apply {
+            moveTo(0f, size.height / 2)
+            cubicTo(
+                size.width * 0.25f, 0f, 
+                size.width * 0.25f, size.height, 
+                size.width * 0.5f, size.height / 2
+            )
+            cubicTo(
+                size.width * 0.75f, 0f, 
+                size.width * 0.75f, size.height, 
+                size.width, size.height / 2
+            )
+        }
+        drawPath(
+            path = path,
+            color = color,
+            style = Stroke(
+                width = 4f,
+                cap = StrokeCap.Round,
+                join = StrokeJoin.Round
+            )
+        )
+    }
+}
+
+@Composable
+fun SectionHeader(
+    title: String, 
+    cornerRadius: androidx.compose.ui.unit.Dp, 
+    totalCredit: Double? = null, 
+    totalDebit: Double? = null,
+    onCreditClick: () -> Unit = {},
+    onDebitClick: () -> Unit = {},
+    isSelectionMode: Boolean = false,
+    onSelectAll: () -> Unit = {},
+    onDeselectAll: () -> Unit = {},
+    snoozeLabel: String? = null,
+    onSnoozeClick: (() -> Unit)? = null,
+    otpAutoDeleteMins: Int? = null,
+    onOtpAutoDeleteClick: (() -> Unit)? = null,
+    onMarkAllRead: (() -> Unit)? = null,
+    onMarkAllUnread: (() -> Unit)? = null
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                text = title, 
+                color = MaterialTheme.colorScheme.onBackground, 
+                fontSize = 18.sp, 
+                fontWeight = FontWeight.Bold,
+                fontFamily = FontFamily.Serif,
+                fontStyle = FontStyle.Italic
+            )
+            
+            if (isSelectionMode) {
+                Spacer(modifier = Modifier.width(16.dp))
+                androidx.compose.material3.IconButton(
+                    onClick = onSelectAll,
+                    modifier = Modifier.size(32.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.DoneAll,
+                        contentDescription = "Select All",
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
+                Spacer(modifier = Modifier.width(8.dp))
+                androidx.compose.material3.IconButton(
+                    onClick = onDeselectAll,
+                    modifier = Modifier.size(32.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.RemoveDone,
+                        contentDescription = "Deselect All",
+                        tint = MaterialTheme.colorScheme.error
+                    )
+                }
+                
+                if (snoozeLabel != null && onSnoozeClick != null) {
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Box(contentAlignment = Alignment.Center) {
+                        androidx.compose.material3.IconButton(
+                            onClick = onSnoozeClick,
+                            modifier = Modifier.size(32.dp).padding(top = 8.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Rounded.AccessAlarms,
+                                contentDescription = "Snooze",
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                        Box(
+                            modifier = Modifier
+                                .align(Alignment.TopCenter)
+                                .offset(y = (-4).dp)
+                                .background(MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(8.dp))
+                                .padding(horizontal = 4.dp, vertical = 2.dp)
+                        ) {
+                            Text(
+                                text = snoozeLabel,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+                }
+            }
+            
+            if (!isSelectionMode && totalCredit != null && totalDebit != null && (totalCredit > 0 || totalDebit > 0)) {
+                Spacer(modifier = Modifier.width(12.dp))
+                if (totalCredit > 0) {
+                    Row(
+                        modifier = Modifier.clickable { onCreditClick() }.padding(horizontal = 4.dp, vertical = 2.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = androidx.compose.material.icons.Icons.Rounded.ArrowUpward,
+                            contentDescription = "Credit",
+                            tint = Color(0xFF4CAF50),
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Text(
+                            text = formatAmountCompact(totalCredit),
+                            color = Color(0xFF4CAF50),
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(4.dp))
+                }
+                if (totalDebit > 0) {
+                    Row(
+                        modifier = Modifier.clickable { onDebitClick() }.padding(horizontal = 4.dp, vertical = 2.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = androidx.compose.material.icons.Icons.Rounded.ArrowDownward,
+                            contentDescription = "Debit",
+                            tint = Color(0xFFF44336),
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Text(
+                            text = formatAmountCompact(totalDebit),
+                            color = Color(0xFFF44336),
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+            }
+        }
+        
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            if (onMarkAllRead != null) {
+                androidx.compose.material3.IconButton(
+                    onClick = onMarkAllRead,
+                    modifier = Modifier.size(28.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.Checklist,
+                        contentDescription = "Mark all read",
+                        tint = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+            }
+            if (onMarkAllUnread != null) {
+                androidx.compose.material3.IconButton(
+                    onClick = onMarkAllUnread,
+                    modifier = Modifier.size(28.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.MarkEmailUnread,
+                        contentDescription = "Mark all unread",
+                        tint = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+            }
+            if (otpAutoDeleteMins != null && onOtpAutoDeleteClick != null) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.clickable { onOtpAutoDeleteClick() }.padding(horizontal = 4.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.Timer,
+                        contentDescription = "Auto delete OTP timer",
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Text(
+                        text = "${otpAutoDeleteMins}min",
+                        color = MaterialTheme.colorScheme.primary,
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+            // todayCount removed
+        }
+    }
+}
+
+@Composable
+fun DateSectionHeader(title: String, cornerRadius: androidx.compose.ui.unit.Dp) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(top = 4.dp, bottom = 0.dp, start = 4.dp, end = 4.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier
+                .clip(RoundedCornerShape(cornerRadius / 2))
+                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f))
+                .padding(horizontal = 10.dp, vertical = 4.dp)
+        ) {
+            Text(
+                text = title,
+                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f),
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 1.sp
+            )
+        }
+        Spacer(modifier = Modifier.width(12.dp))
+        androidx.compose.foundation.Canvas(modifier = Modifier.weight(1f).height(1.dp)) {
+            drawLine(
+                color = androidx.compose.ui.graphics.Color.Gray.copy(alpha = 0.3f),
+                start = androidx.compose.ui.geometry.Offset(0f, 0f),
+                end = androidx.compose.ui.geometry.Offset(size.width, 0f),
+                pathEffect = androidx.compose.ui.graphics.PathEffect.dashPathEffect(floatArrayOf(10f, 10f), 0f)
+            )
+        }
+    }
+}
+
+fun extractAmount(text: String): Double {
+    val cleanText = text
+        .replace(Regex("(?i)(?:available|avl|total|outst|remaining)\\s*(?:balance|bal|limit|amt|amount|outstanding)\\s*(?:is|:|-|=)?\\s*(?:rs\\.?|inr|\\u20B9)?\\s*[\\d,]+\\.?\\d*"), "")
+        .replace(Regex("(?i)(?:order|txn|transaction|ref|reference)\\s*(?:id|no|number)?\\s*[:\\-]?\\s*[#*]?\\s*\\d+"), "")
+        .replace(Regex("[#*]\\s*\\d+"), "")
+        .replace(Regex("\\b\\d{10,}\\b"), "") // Remove phone numbers / long IDs (10+ digits without decimals)
+
+    val regexCurrency = Regex("(?i)(?:rs\\.?|inr|\\u20B9)\\s*([\\d,]+\\.?\\d*)")
+    val match = regexCurrency.find(cleanText)
+    if (match != null) {
+        val amount = match.groupValues[1].replace(",", "").toDoubleOrNull() ?: 0.0
+        if (amount > 0) return amount
+    }
+    
+    val regexAmountOf = Regex("(?i)amount(?: of)?\\s*([\\d,]+\\.?\\d*)")
+    val matchAmountOf = regexAmountOf.find(cleanText)
+    if (matchAmountOf != null) {
+        val amount = matchAmountOf.groupValues[1].replace(",", "").toDoubleOrNull() ?: 0.0
+        if (amount > 0) return amount
+    }
+
+    val decimalRegex = Regex("([\\d,]+\\.\\d{1,2})")
+    val decimalMatch = decimalRegex.find(cleanText)
+    if (decimalMatch != null) {
+        val amount = decimalMatch.groupValues[1].replace(",", "").toDoubleOrNull() ?: 0.0
+        if (amount > 0) return amount
+    }
+
+    val genericRegex = Regex("\\b([\\d,]+)\\b")
+    val allMatches = genericRegex.findAll(cleanText).mapNotNull { it.groupValues[1].replace(",", "").toDoubleOrNull() }.toList()
+    return allMatches.firstOrNull { it > 0 } ?: 0.0
+}
+
+fun formatAmountCompact(amount: Double): String {
+    return when {
+        amount >= 100000 -> String.format(java.util.Locale.US, "%.1fL", amount / 100000)
+        amount >= 1000 -> String.format(java.util.Locale.US, "%.1fk", amount / 1000)
+        else -> String.format(java.util.Locale.US, "%.0f", amount)
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun ChatRowCard(
+    modifier: Modifier = Modifier,
+    thread: ChatThread,
+    bgColor: Color,
+    surfaceColor: Color,
+    searchQuery: String = "",
+    cornerRadius: androidx.compose.ui.unit.Dp,
+    onClick: () -> Unit,
+    onLongClick: () -> Unit = {},
+    onSwipeRight: (() -> Unit)? = null,
+    onNavigateToProfile: () -> Unit,
+    isSelectionMode: Boolean = false,
+    isSelected: Boolean = false,
+    onSelectToggle: (Boolean) -> Unit = {}
+) {
+    val context = LocalContext.current
+    val displayName = thread.contactName ?: thread.address
+    val initial = displayName.firstOrNull()?.uppercaseChar()?.toString() ?: "?"
+    
+    val primaryColor = MaterialTheme.colorScheme.primary
+    val stampText = when {
+        !thread.read -> "UNREAD"
+        thread.category == SmsCategory.OTP -> "OTP"
+        else -> "SEEN"
+    }
+    
+    val otpCode = if (thread.category == SmsCategory.OTP) {
+        Regex("\\b\\d{4,8}\\b").find(thread.body)?.value
+    } else null
+
+    val interactionSource = remember { MutableInteractionSource() }
+    var offsetX by remember { mutableFloatStateOf(0f) }
+    val isSwipingRight by remember { derivedStateOf { offsetX > 0 && onSwipeRight != null } }
+    val coroutineScope = rememberCoroutineScope()
+
+    Box(
+        modifier = modifier.fillMaxWidth()
+    ) {
+        // Background layer for icons
+        Box(
+            modifier = Modifier
+                .matchParentSize()
+                .background(Color.Transparent)
+                .padding(horizontal = 24.dp),
+        ) {
+            if (isSwipingRight) {
+                // Swiping right -> Toggle Read
+                val icon = if (thread.read) Icons.Rounded.MarkChatUnread else Icons.Rounded.CheckCircle
+                val tint = if (thread.read) Color.Blue else Color.Green
+                val textDesc = if (thread.read) "Mark as unread" else "Mark as read"
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.CenterStart) {
+                    Icon(icon, contentDescription = textDesc, tint = tint, modifier = Modifier.size(28.dp))
+                }
+            }
+        }
+
+        // Foreground Card
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .offset { IntOffset(offsetX.roundToInt(), 0) }
+                .pointerInput(Unit) {
+                    detectDragGesturesAfterLongPress(
+                        onDragStart = { },
+                        onDrag = { _, dragAmount ->
+                            val newOffset = offsetX + dragAmount.x
+                            if (newOffset < 0) {
+                                offsetX = 0f
+                            } else if (newOffset > 0 && onSwipeRight == null) {
+                                offsetX = 0f
+                            } else {
+                                offsetX = newOffset
+                            }
+                        },
+                        onDragEnd = {
+                            if (offsetX > 150f && onSwipeRight != null) { // Threshold right
+                                onSwipeRight.invoke() // triggers mark as read/unread
+                            }
+                            offsetX = 0f
+                        },
+                        onDragCancel = {
+                            offsetX = 0f
+                        }
+                    )
+                }
+                .pointerInput(isSelectionMode, isSelected) {
+                    detectTapGestures(
+                        onLongPress = {
+                            if (!isSelectionMode) {
+                                onLongClick()
+                            }
+                        },
+                        onTap = {
+                            if (isSelectionMode) {
+                                onSelectToggle(!isSelected)
+                            } else {
+                                onClick()
+                            }
+                        }
+                    )
+                }
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                if (isSelectionMode) {
+                    Checkbox(
+                        checked = isSelected,
+                        onCheckedChange = null,
+                        modifier = Modifier.padding(start = 8.dp, end = 4.dp)
+                    )
+                }
+                Box(modifier = Modifier.weight(1f)) {
+                    MessageCard(
+                        thread = thread,
+                        surfaceColor = surfaceColor,
+                        cornerRadius = cornerRadius,
+                        searchQuery = searchQuery,
+                        onNavigateToProfile = onNavigateToProfile
+                    )
+                }
+            }
+        }
+    }
+}
+
+fun formatTime(timeMillis: Long): String {
+    val date = Date(timeMillis)
+    val now = Calendar.getInstance()
+    val timeCalendar = Calendar.getInstance().apply { time = date }
+    
+    val isToday = now.get(Calendar.YEAR) == timeCalendar.get(Calendar.YEAR) &&
+                  now.get(Calendar.DAY_OF_YEAR) == timeCalendar.get(Calendar.DAY_OF_YEAR)
+                  
+    val timeFormatter = SimpleDateFormat("h:mm a", Locale.getDefault())
+    if (isToday) {
+        return "Today, ${timeFormatter.format(date)}"
+    }
+    
+    now.add(Calendar.DAY_OF_YEAR, -1)
+    val isYesterday = now.get(Calendar.YEAR) == timeCalendar.get(Calendar.YEAR) &&
+                      now.get(Calendar.DAY_OF_YEAR) == timeCalendar.get(Calendar.DAY_OF_YEAR)
+    if (isYesterday) {
+        return "Yesterday, ${timeFormatter.format(date)}"
+    }
+    
+    val formatter = SimpleDateFormat("MMM dd, h:mm a", Locale.getDefault())
+    return formatter.format(date)
+}
+
+@Composable
+fun HighlightedText(
+    text: String,
+    query: String,
+    color: Color,
+    fontSize: androidx.compose.ui.unit.TextUnit,
+    fontWeight: FontWeight? = null,
+    maxLines: Int = Int.MAX_VALUE,
+    overflow: TextOverflow = TextOverflow.Clip
+) {
+    if (query.isBlank()) {
+        Text(text = text, color = color, fontSize = fontSize, fontWeight = fontWeight, maxLines = maxLines, overflow = overflow)
+        return
+    }
+    
+    val highlightColor = MaterialTheme.colorScheme.primaryContainer
+    val highlightTextColor = MaterialTheme.colorScheme.onPrimaryContainer
+    
+    val annotatedString = buildAnnotatedString {
+        val lowerText = text.lowercase()
+        val lowerQuery = query.lowercase()
+        
+        var startIndex = 0
+        while (startIndex < text.length) {
+            val index = lowerText.indexOf(lowerQuery, startIndex)
+            if (index == -1) {
+                append(text.substring(startIndex))
+                break
+            }
+            
+            append(text.substring(startIndex, index))
+            
+            withStyle(SpanStyle(background = highlightColor, color = highlightTextColor)) {
+                append(text.substring(index, index + query.length))
+            }
+            
+            startIndex = index + query.length
+        }
+    }
+    
+    Text(text = annotatedString, color = color, fontSize = fontSize, fontWeight = fontWeight, maxLines = maxLines, overflow = overflow, lineHeight = 22.sp)
+}

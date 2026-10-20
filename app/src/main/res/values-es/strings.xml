@@ -1,0 +1,115 @@
+<resources>
+    <string name="app_name">Brome</string>
+
+    <!-- General Actions -->
+    <string name="back">Atrás</string>
+    <string name="cancel">Cancelar</string>
+    <string name="confirm">Confirmar</string>
+    <string name="save">Guardar</string>
+    <string name="delete">Eliminar</string>
+    <string name="clear">Borrar</string>
+    <string name="close">Cerrar</string>
+    <string name="done">Listo</string>
+    <string name="search">Buscar</string>
+    <string name="search_messages">Buscar mensajes</string>
+    <string name="see_all">Ver todo</string>
+    <string name="restore">Restaurar</string>
+    <string name="dismiss">Descartar</string>
+    <string name="recent">RECIENTES</string>
+
+    <!-- Categories -->
+    <string name="categories_header">CATEGORÍAS</string>
+    <string name="show_more">Ver más</string>
+    <string name="show_less">Ver menos</string>
+    <string name="cat_all">Todos</string>
+    <string name="cat_messages">Mensajes</string>
+    <string name="cat_unread">No leídos</string>
+    <string name="cat_otp">OTP</string>
+    <string name="cat_finance">Transacciones</string>
+    <string name="cat_promotions">Promociones</string>
+    <string name="cat_spam">Spam</string>
+    <string name="cat_shopping">Compras</string>
+    <string name="cat_tickets">Entradas</string>
+    <string name="cat_reminders">Recordatorios</string>
+    <string name="cat_subscriptions">Suscripciones</string>
+    <string name="cat_important">Importante</string>
+    <string name="cat_others">Otros</string>
+
+    <!-- Navigation -->
+    <string name="nav_messages">Mensajes</string>
+    <string name="nav_starred">Destacados</string>
+    <string name="nav_contacts">Contactos</string>
+    <string name="nav_archive">Archivados</string>
+    <string name="nav_compose">Nuevo mensaje</string>
+
+    <!-- Screens & Empty States -->
+    <string name="finance_button">Finanzas</string>
+    <string name="no_conversations">No hay conversaciones</string>
+    <string name="no_messages">No hay mensajes</string>
+    <string name="starred_title">Destacados</string>
+    <string name="starred_subtitle">%d mensajes guardados</string>
+    <string name="starred_empty">No hay mensajes destacados</string>
+    <string name="archive_title">Archivados</string>
+    <string name="archive_subtitle">En silencio hasta que llegue algo nuevo</string>
+    <string name="archive_empty">El archivo está vacío</string>
+    <string name="trash_title">Papelera de reciclaje</string>
+    <string name="trash_subtitle">Los elementos de la papelera se eliminarán permanentemente después de 7 días.</string>
+    <string name="trash_empty">No hay mensajes en la papelera</string>
+    <string name="empty_trash">Vaciar papelera</string>
+    <string name="contacts_title">Contactos</string>
+    <string name="contacts_empty">No se encontraron contactos</string>
+
+    <!-- Settings Hub -->
+    <string name="settings_title">Ajustes</string>
+    <string name="section_appearance">Apariencia</string>
+    <string name="section_layout">Diseño y clasificación</string>
+    <string name="section_autodelete_lang">Eliminación automática e idioma</string>
+    <string name="section_about">Acerca de</string>
+    <string name="tile_background">Fondo</string>
+    <string name="tile_background_desc">Patrón, textura y estilo de apariencia</string>
+    <string name="tile_nav_buttons">Navegación, botones y búsqueda</string>
+    <string name="tile_nav_buttons_desc">Altura de barra, tamaño de botón e indicación de búsqueda</string>
+    <string name="tile_categories">Categorías</string>
+    <string name="tile_categories_desc">Activar y reorganizar clasificación de mensajes</string>
+    <string name="tile_autodelete">Reglas de eliminación automática</string>
+    <string name="tile_language">Idioma</string>
+    <string name="tile_language_desc">Idioma de la aplicación</string>
+
+    <!-- Auto-Delete & Language -->
+    <string name="otp_autodelete_title">Eliminar OTPs automáticamente después de:</string>
+    <string name="spam_autodelete_title">Mensajes no deseados</string>
+    <string name="spam_autodelete_desc">Eliminar spam automáticamente después de:</string>
+    <string name="recycle_bin_title">Papelera de reciclaje</string>
+    <string name="recycle_bin_desc">Conservar mensajes eliminados durante:</string>
+    <string name="starred_never_deleted">Los mensajes destacados nunca se eliminan automáticamente.</string>
+
+    <!-- Language Names -->
+    <string name="lang_system">Predeterminado del sistema</string>
+    <string name="lang_en">Inglés</string>
+    <string name="lang_es">Español</string>
+    <string name="lang_fr">Francés</string>
+    <string name="lang_de">Alemán</string>
+    <string name="lang_ru">Ruso</string>
+    <string name="lang_pl">Polaco</string>
+    <string name="lang_hu">Húngaro</string>
+    <string name="lang_ar">Árabe</string>
+    <string name="lang_it">Italiano</string>
+    <string name="lang_pt">Portugués</string>
+
+    <!-- Chat & Action Details -->
+    <string name="type_message">Escribe un mensaje…</string>
+    <string name="send">Enviar</string>
+    <string name="call">Llamar</string>
+    <string name="block">Bloquear</string>
+    <string name="delete_conversation">Eliminar conversación</string>
+    <string name="copy_code">Copiar código</string>
+    <string name="code_copied">Código copiado</string>
+
+    <!-- Time Durations -->
+    <string name="time_never">Nunca</string>
+    <string name="time_1_hour">1 hora</string>
+    <string name="time_24_hours">24 horas</string>
+    <string name="time_7_days">7 días</string>
+    <string name="time_30_days">30 días</string>
+    <string name="time_60_days">60 días</string>
+</resources>

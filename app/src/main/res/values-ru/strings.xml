@@ -1,0 +1,115 @@
+<resources>
+    <string name="app_name">Brome</string>
+
+    <!-- General Actions -->
+    <string name="back">Назад</string>
+    <string name="cancel">Отмена</string>
+    <string name="confirm">Подтвердить</string>
+    <string name="save">Сохранить</string>
+    <string name="delete">Удалить</string>
+    <string name="clear">Очистить</string>
+    <string name="close">Закрыть</string>
+    <string name="done">Готово</string>
+    <string name="search">Поиск</string>
+    <string name="search_messages">Поиск сообщений</string>
+    <string name="see_all">Все</string>
+    <string name="restore">Восстановить</string>
+    <string name="dismiss">Закрыть</string>
+    <string name="recent">НЕДАВНИЕ</string>
+
+    <!-- Categories -->
+    <string name="categories_header">КАТЕГОРИИ</string>
+    <string name="show_more">Показать ещё</string>
+    <string name="show_less">Скрыть</string>
+    <string name="cat_all">Все</string>
+    <string name="cat_messages">Сообщения</string>
+    <string name="cat_unread">Непрочитанные</string>
+    <string name="cat_otp">OTP</string>
+    <string name="cat_finance">Транзакции</string>
+    <string name="cat_promotions">Акции</string>
+    <string name="cat_spam">Спам</string>
+    <string name="cat_shopping">Покупки</string>
+    <string name="cat_tickets">Билеты</string>
+    <string name="cat_reminders">Напоминания</string>
+    <string name="cat_subscriptions">Подписки</string>
+    <string name="cat_important">Важное</string>
+    <string name="cat_others">Другое</string>
+
+    <!-- Navigation -->
+    <string name="nav_messages">Сообщения</string>
+    <string name="nav_starred">Избранное</string>
+    <string name="nav_contacts">Контакты</string>
+    <string name="nav_archive">Архив</string>
+    <string name="nav_compose">Новое сообщение</string>
+
+    <!-- Screens & Empty States -->
+    <string name="finance_button">Финансы</string>
+    <string name="no_conversations">Нет диалогов</string>
+    <string name="no_messages">Нет сообщений</string>
+    <string name="starred_title">Избранное</string>
+    <string name="starred_subtitle">Сохранённых сообщений: %d</string>
+    <string name="starred_empty">Нет избранных сообщений</string>
+    <string name="archive_title">Архив</string>
+    <string name="archive_subtitle">Тишина, пока не придёт новое</string>
+    <string name="archive_empty">Архив пуст</string>
+    <string name="trash_title">Корзина</string>
+    <string name="trash_subtitle">Сообщения в корзине удаляются навсегда через 7 дней.</string>
+    <string name="trash_empty">В корзине пусто</string>
+    <string name="empty_trash">Очистить корзину</string>
+    <string name="contacts_title">Контакты</string>
+    <string name="contacts_empty">Контакты не найдены</string>
+
+    <!-- Settings Hub -->
+    <string name="settings_title">Настройки</string>
+    <string name="section_appearance">Внешний вид</string>
+    <string name="section_layout">Разметка и сортировка</string>
+    <string name="section_autodelete_lang">Автоудаление и язык</string>
+    <string name="section_about">О приложении</string>
+    <string name="tile_background">Фон</string>
+    <string name="tile_background_desc">Узор, текстура и стиль оформления</string>
+    <string name="tile_nav_buttons">Навигация, кнопки и поиск</string>
+    <string name="tile_nav_buttons_desc">Высота панели, размер кнопки и подсказка поиска</string>
+    <string name="tile_categories">Категории</string>
+    <string name="tile_categories_desc">Включение и перекрашивание сортировки</string>
+    <string name="tile_autodelete">Правила автоудаления</string>
+    <string name="tile_language">Язык</string>
+    <string name="tile_language_desc">Язык приложения</string>
+
+    <!-- Auto-Delete & Language -->
+    <string name="otp_autodelete_title">Автоудаление OTP через:</string>
+    <string name="spam_autodelete_title">Спам-сообщения</string>
+    <string name="spam_autodelete_desc">Автоудаление спама через:</string>
+    <string name="recycle_bin_title">Корзина</string>
+    <string name="recycle_bin_desc">Хранить удалённые сообщения:</string>
+    <string name="starred_never_deleted">Избранные сообщения никогда не удаляются автоматически.</string>
+
+    <!-- Language Names -->
+    <string name="lang_system">Системный по умолчанию</string>
+    <string name="lang_en">Английский</string>
+    <string name="lang_es">Испанский</string>
+    <string name="lang_fr">Французский</string>
+    <string name="lang_de">Немецкий</string>
+    <string name="lang_ru">Русский</string>
+    <string name="lang_pl">Польский</string>
+    <string name="lang_hu">Венгерский</string>
+    <string name="lang_ar">Арабский</string>
+    <string name="lang_it">Итальянский</string>
+    <string name="lang_pt">Португальский</string>
+
+    <!-- Chat & Action Details -->
+    <string name="type_message">Введите сообщение…</string>
+    <string name="send">Отправить</string>
+    <string name="call">Позвонить</string>
+    <string name="block">Заблокировать</string>
+    <string name="delete_conversation">Удалить беседу</string>
+    <string name="copy_code">Копировать код</string>
+    <string name="code_copied">Код скопирован</string>
+
+    <!-- Time Durations -->
+    <string name="time_never">Никогда</string>
+    <string name="time_1_hour">1 час</string>
+    <string name="time_24_hours">24 часа</string>
+    <string name="time_7_days">7 дней</string>
+    <string name="time_30_days">30 дней</string>
+    <string name="time_60_days">60 дней</string>
+</resources>

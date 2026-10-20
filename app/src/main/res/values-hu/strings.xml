@@ -1,0 +1,115 @@
+<resources>
+    <string name="app_name">Brome</string>
+
+    <!-- General Actions -->
+    <string name="back">Vissza</string>
+    <string name="cancel">Mégse</string>
+    <string name="confirm">Megerősítés</string>
+    <string name="save">Mentés</string>
+    <string name="delete">Törlés</string>
+    <string name="clear">Törlés</string>
+    <string name="close">Bezárás</string>
+    <string name="done">Kész</string>
+    <string name="search">Keresés</string>
+    <string name="search_messages">Üzenetek keresése</string>
+    <string name="see_all">Összes megtekintése</string>
+    <string name="restore">Visszaállítás</string>
+    <string name="dismiss">Elvetés</string>
+    <string name="recent">LEGUTÓBBI</string>
+
+    <!-- Categories -->
+    <string name="categories_header">KATEGÓRIÁK</string>
+    <string name="show_more">Több megjelenítése</string>
+    <string name="show_less">Kevesebb</string>
+    <string name="cat_all">Összes</string>
+    <string name="cat_messages">Üzenetek</string>
+    <string name="cat_unread">Olvasatlan</string>
+    <string name="cat_otp">OTP</string>
+    <string name="cat_finance">Tranzakciók</string>
+    <string name="cat_promotions">Promóciók</string>
+    <string name="cat_spam">Spam</string>
+    <string name="cat_shopping">Vásárlás</string>
+    <string name="cat_tickets">Jegyek</string>
+    <string name="cat_reminders">Emlékeztetők</string>
+    <string name="cat_subscriptions">Előfizetések</string>
+    <string name="cat_important">Fontos</string>
+    <string name="cat_others">Egyéb</string>
+
+    <!-- Navigation -->
+    <string name="nav_messages">Üzenetek</string>
+    <string name="nav_starred">Csillagozott</string>
+    <string name="nav_contacts">Kapcsolatok</string>
+    <string name="nav_archive">Archívum</string>
+    <string name="nav_compose">Új üzenet</string>
+
+    <!-- Screens & Empty States -->
+    <string name="finance_button">Pénzügyek</string>
+    <string name="no_conversations">Nincsenek beszélgetések</string>
+    <string name="no_messages">Nincsenek üzenetek</string>
+    <string name="starred_title">Csillagozott</string>
+    <string name="starred_subtitle">%d elmentett üzenet</string>
+    <string name="starred_empty">Nincsenek csillagozott üzenetek</string>
+    <string name="archive_title">Archívum</string>
+    <string name="archive_subtitle">Csendes, amíg új üzenet nem érkezik</string>
+    <string name="archive_empty">Az archívum üres</string>
+    <string name="trash_title">Lomtár</string>
+    <string name="trash_subtitle">A lomtárban lévő elemek 7 nap után véglegesen törlődnek.</string>
+    <string name="trash_empty">A lomtár üres</string>
+    <string name="empty_trash">Lomtár ürítése</string>
+    <string name="contacts_title">Kapcsolatok</string>
+    <string name="contacts_empty">Nem találhatók kapcsolatok</string>
+
+    <!-- Settings Hub -->
+    <string name="settings_title">Beállítások</string>
+    <string name="section_appearance">Megjelenés</string>
+    <string name="section_layout">Elrendezés és rendezés</string>
+    <string name="section_autodelete_lang">Automatikus törlés és nyelv</string>
+    <string name="section_about">Névjegy</string>
+    <string name="tile_background">Háttér</string>
+    <string name="tile_background_desc">Minta, textúra és stílus</string>
+    <string name="tile_nav_buttons">Navigáció, gombok és keresés</string>
+    <string name="tile_nav_buttons_desc">Sávmagasság, gombméret és keresési tipp</string>
+    <string name="tile_categories">Kategóriák</string>
+    <string name="tile_categories_desc">Üzenetkategóriák kezelése és színezése</string>
+    <string name="tile_autodelete">Automatikus törlési szabályok</string>
+    <string name="tile_language">Nyelv</string>
+    <string name="tile_language_desc">Alkalmazás nyelve és írásmódja</string>
+
+    <!-- Auto-Delete & Language -->
+    <string name="otp_autodelete_title">OTP-k automatikus törlése ennyi idő után:</string>
+    <string name="spam_autodelete_title">Spam üzenetek</string>
+    <string name="spam_autodelete_desc">Spam automatikus törlése ennyi idő után:</string>
+    <string name="recycle_bin_title">Lomtár</string>
+    <string name="recycle_bin_desc">Törölt üzenetek megőrzése:</string>
+    <string name="starred_never_deleted">A csillagozott üzenetek soha nem törlődnek automatikusan.</string>
+
+    <!-- Language Names -->
+    <string name="lang_system">Rendszer alapértelmezett</string>
+    <string name="lang_en">Angol</string>
+    <string name="lang_es">Spanyol</string>
+    <string name="lang_fr">Francia</string>
+    <string name="lang_de">Német</string>
+    <string name="lang_ru">Orosz</string>
+    <string name="lang_pl">Lengyel</string>
+    <string name="lang_hu">Magyar</string>
+    <string name="lang_ar">Arab</string>
+    <string name="lang_it">Olasz</string>
+    <string name="lang_pt">Portugál</string>
+
+    <!-- Chat & Action Details -->
+    <string name="type_message">Írjon üzenetet…</string>
+    <string name="send">Küldés</string>
+    <string name="call">Hívás</string>
+    <string name="block">Letiltás</string>
+    <string name="delete_conversation">Beszélgetés törlése</string>
+    <string name="copy_code">Kód másolása</string>
+    <string name="code_copied">Kód másolva</string>
+
+    <!-- Time Durations -->
+    <string name="time_never">Soha</string>
+    <string name="time_1_hour">1 óra</string>
+    <string name="time_24_hours">24 óra</string>
+    <string name="time_7_days">7 nap</string>
+    <string name="time_30_days">30 nap</string>
+    <string name="time_60_days">60 nap</string>
+</resources>
