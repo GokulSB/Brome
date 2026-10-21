@@ -920,64 +920,110 @@ fun TideSelectionActionBar(
     onOverflowClick: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
-    Surface(
-        shape = RoundedCornerShape(36.dp),
-        color = MaterialTheme.colorScheme.surfaceContainer,
-        shadowElevation = 8.dp,
+    Box(
         modifier = modifier
             .fillMaxWidth()
-            .height(72.dp)
-            .padding(horizontal = 20.dp)
             .navigationBarsPadding()
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        contentAlignment = Alignment.Center
     ) {
-        Row(
+        Surface(
+            shape = CircleShape,
+            color = MaterialTheme.colorScheme.surfaceContainer,
+            shadowElevation = 8.dp,
             modifier = Modifier
-                .fillMaxSize()
-                .padding(8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                .fillMaxWidth()
+                .height(64.dp)
         ) {
-            if (isSpamTab) {
-                // Not Spam Pill
-                Surface(
-                    onClick = { onNotSpamClick?.invoke() },
-                    shape = CircleShape,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxHeight()
-                        .pressScale()
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxSize(),
-                        horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            Icons.Rounded.CheckCircle,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onPrimary,
-                            modifier = Modifier.size(20.dp)
-                        )
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text(
-                            text = "Not Spam",
-                            fontFamily = FigtreeFontFamily,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 14.sp,
-                            color = MaterialTheme.colorScheme.onPrimary
-                        )
-                    }
-                }
-            } else {
-                if (onMarkReadClick != null || onMarkUnreadClick != null) {
-                    val isMarkRead = hasUnreadSelected
-                    val readPillLabel = if (isMarkRead) "Read" else "Unread"
-                    val readPillIcon = if (isMarkRead) Icons.Rounded.Drafts else Icons.Rounded.MarkEmailUnread
+            Row(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 8.dp, vertical = 6.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                if (isSpamTab) {
+                    // Not Spam Pill
                     Surface(
-                        onClick = {
-                            if (isMarkRead) onMarkReadClick?.invoke() else onMarkUnreadClick?.invoke()
-                        },
+                        onClick = { onNotSpamClick?.invoke() },
+                        shape = CircleShape,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxHeight()
+                            .pressScale()
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(horizontal = 4.dp),
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                Icons.Rounded.CheckCircle,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onPrimary,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = "Not Spam",
+                                fontFamily = FigtreeFontFamily,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 13.sp,
+                                color = MaterialTheme.colorScheme.onPrimary,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                    }
+                } else {
+                    if (onMarkReadClick != null || onMarkUnreadClick != null) {
+                        val isMarkRead = hasUnreadSelected
+                        val readPillLabel = if (isMarkRead) "Read" else "Unread"
+                        val readPillIcon = if (isMarkRead) Icons.Rounded.Drafts else Icons.Rounded.MarkEmailUnread
+                        Surface(
+                            onClick = {
+                                if (isMarkRead) onMarkReadClick?.invoke() else onMarkUnreadClick?.invoke()
+                            },
+                            shape = CircleShape,
+                            color = MaterialTheme.colorScheme.surfaceContainerHighest,
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxHeight()
+                                .pressScale()
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(horizontal = 4.dp),
+                                horizontalArrangement = Arrangement.Center,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    readPillIcon,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(
+                                    text = readPillLabel,
+                                    fontFamily = FigtreeFontFamily,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 13.sp,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            }
+                        }
+                    }
+                    // Star Pill
+                    val starLabel = if (isStarredScreen || allStarred) "Unstar" else "Star"
+                    Surface(
+                        onClick = onStarClick,
                         shape = CircleShape,
                         color = MaterialTheme.colorScheme.surfaceContainerHighest,
                         modifier = Modifier
@@ -986,111 +1032,86 @@ fun TideSelectionActionBar(
                             .pressScale()
                     ) {
                         Row(
-                            modifier = Modifier.fillMaxSize(),
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(horizontal = 4.dp),
                             horizontalArrangement = Arrangement.Center,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Icon(
-                                readPillIcon,
+                                if (allStarred || isStarredScreen) Icons.Rounded.Star else Icons.Rounded.StarOutline,
                                 contentDescription = null,
                                 tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(20.dp)
+                                modifier = Modifier.size(18.dp)
                             )
-                            Spacer(modifier = Modifier.width(6.dp))
+                            Spacer(modifier = Modifier.width(4.dp))
                             Text(
-                                text = readPillLabel,
+                                text = starLabel,
                                 fontFamily = FigtreeFontFamily,
                                 fontWeight = FontWeight.Bold,
-                                fontSize = 14.sp,
+                                fontSize = 13.sp,
                                 color = MaterialTheme.colorScheme.onSurface,
-                                maxLines = 1
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                    }
+
+                    // Archive Pill
+                    val archiveLabel = if (isArchiveScreen) "Unarchive" else "Archive"
+                    Surface(
+                        onClick = onArchiveClick,
+                        shape = CircleShape,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxHeight()
+                            .pressScale()
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(horizontal = 4.dp),
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                if (isArchiveScreen) Icons.Rounded.Unarchive else Icons.Rounded.Archive,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onPrimary,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = archiveLabel,
+                                fontFamily = FigtreeFontFamily,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 13.sp,
+                                color = MaterialTheme.colorScheme.onPrimary,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
                             )
                         }
                     }
                 }
-                // Star Pill
-                val starLabel = if (isStarredScreen || allStarred) "Unstar" else "Star"
+
+                // 50dp Delete Circle Button (replaces three-dot overflow menu)
                 Surface(
-                    onClick = onStarClick,
+                    onClick = { onDeleteClick?.invoke() },
                     shape = CircleShape,
-                    color = MaterialTheme.colorScheme.surfaceContainerHighest,
+                    color = MaterialTheme.colorScheme.errorContainer,
                     modifier = Modifier
-                        .weight(1f)
-                        .fillMaxHeight()
+                        .size(50.dp)
                         .pressScale()
                 ) {
-                    Row(
-                        modifier = Modifier.fillMaxSize(),
-                        horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
+                    Box(contentAlignment = Alignment.Center) {
                         Icon(
-                            if (allStarred || isStarredScreen) Icons.Rounded.Star else Icons.Rounded.StarOutline,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
+                            Icons.Rounded.Delete,
+                            contentDescription = "Delete",
+                            tint = MaterialTheme.colorScheme.onErrorContainer,
                             modifier = Modifier.size(20.dp)
                         )
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text(
-                            text = starLabel,
-                            fontFamily = FigtreeFontFamily,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 14.sp,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
                     }
-                }
-
-                // Archive Pill
-                val archiveLabel = if (isArchiveScreen) "Unarchive" else "Archive"
-                Surface(
-                    onClick = onArchiveClick,
-                    shape = CircleShape,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxHeight()
-                        .pressScale()
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxSize(),
-                        horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            if (isArchiveScreen) Icons.Rounded.Unarchive else Icons.Rounded.Archive,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onPrimary,
-                            modifier = Modifier.size(20.dp)
-                        )
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text(
-                            text = archiveLabel,
-                            fontFamily = FigtreeFontFamily,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 14.sp,
-                            color = MaterialTheme.colorScheme.onPrimary
-                        )
-                    }
-                }
-            }
-
-            // 56dp Delete Circle Button (replaces three-dot overflow menu)
-            Surface(
-                onClick = { onDeleteClick?.invoke() },
-                shape = CircleShape,
-                color = MaterialTheme.colorScheme.errorContainer,
-                modifier = Modifier
-                    .size(56.dp)
-                    .pressScale()
-            ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Icon(
-                        Icons.Rounded.Delete,
-                        contentDescription = "Delete",
-                        tint = MaterialTheme.colorScheme.onErrorContainer,
-                        modifier = Modifier.size(22.dp)
-                    )
                 }
             }
         }
@@ -1112,9 +1133,8 @@ fun TideUndoSnackbar(
         shadowElevation = 6.dp,
         modifier = modifier
             .fillMaxWidth()
-            .height(56.dp)
             .padding(horizontal = 20.dp)
-            .navigationBarsPadding()
+            .height(56.dp)
     ) {
         Row(
             modifier = Modifier
