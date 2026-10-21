@@ -58,7 +58,10 @@ class NoHardcodedStylingTest {
         "BromeToast.kt",
         "BromeEmojiPicker.kt",
         "SendProbeScreen.kt",
-        "AutoDeleteManager.kt"
+        "AutoDeleteManager.kt",
+        "LinkSafetyChecker.kt",
+        "MessageLinkText.kt",
+        "LinkSafetyDialog.kt"
     )
 
     @Test

@@ -315,6 +315,7 @@ fun VariantBChatBubble(
     onRetry: (() -> Unit)? = null,
     isPrevSameSender: Boolean = false,
     isNextSameSender: Boolean = false,
+    onUrlClick: ((String) -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     val appearance = com.ripple.chat.theme.LocalBromeAppearance.current
@@ -374,6 +375,12 @@ fun VariantBChatBubble(
             modifier = modifier.fillMaxWidth(),
             horizontalAlignment = if (isSentByMe) Alignment.End else Alignment.Start
         ) {
+            val linkColor = when {
+                isOutline -> if (isSentByMe) (customSent ?: MaterialTheme.colorScheme.primary) else MaterialTheme.colorScheme.primary
+                isSentByMe -> textColor
+                else -> MaterialTheme.colorScheme.primary
+            }
+
             Box(
                 modifier = Modifier
                     .widthIn(min = 60.dp, max = 290.dp)
@@ -382,12 +389,23 @@ fun VariantBChatBubble(
                     .background(bgColor)
                     .padding(horizontal = 16.dp, vertical = 10.dp)
             ) {
-                Text(
-                    text = messageText,
-                    color = textColor,
-                    fontSize = 15.sp,
-                    lineHeight = 21.sp
-                )
+                if (onUrlClick != null) {
+                    MessageLinkText(
+                        text = messageText,
+                        textColor = textColor,
+                        linkColor = linkColor,
+                        fontSize = 15.sp,
+                        lineHeight = 21.sp,
+                        onUrlClick = onUrlClick
+                    )
+                } else {
+                    Text(
+                        text = messageText,
+                        color = textColor,
+                        fontSize = 15.sp,
+                        lineHeight = 21.sp
+                    )
+                }
             }
 
             val showStatusRow = !isNextSameSender || deliveryStatus == MessageDeliveryStatus.FAILED

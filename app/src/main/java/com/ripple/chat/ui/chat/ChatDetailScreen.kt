@@ -82,6 +82,7 @@ fun ChatDetailScreen(
     val keyboardController = LocalSoftwareKeyboardController.current
     var showEmojiPicker by remember { mutableStateOf(false) }
     val textFieldInteractionSource = remember { MutableInteractionSource() }
+    var pendingUrlForSafetyDialog by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(textFieldInteractionSource) {
         textFieldInteractionSource.interactions.collect { interaction ->
@@ -378,7 +379,10 @@ fun ChatDetailScreen(
                                     { viewModel.retryMessage(message) }
                                 } else null,
                                 isPrevSameSender = isPrevSame,
-                                isNextSameSender = isNextSame
+                                isNextSameSender = isNextSame,
+                                onUrlClick = { clickedUrl ->
+                                    pendingUrlForSafetyDialog = clickedUrl
+                                }
                             )
 
                             Spacer(modifier = Modifier.height(4.dp))
@@ -585,6 +589,13 @@ fun ChatDetailScreen(
                 }
             }
         }
+    }
+
+    pendingUrlForSafetyDialog?.let { targetUrl ->
+        LinkSafetyDialog(
+            url = targetUrl,
+            onDismiss = { pendingUrlForSafetyDialog = null }
+        )
     }
 }
 

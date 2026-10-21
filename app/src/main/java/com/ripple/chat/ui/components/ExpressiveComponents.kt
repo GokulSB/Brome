@@ -560,6 +560,7 @@ fun ChatBubble(
     deliveryStatusText: String? = null,
     isPrevSameSender: Boolean = false,
     isNextSameSender: Boolean = false,
+    onUrlClick: ((String) -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     val shape = remember(isSentByMe, isPrevSameSender, isNextSameSender) {
@@ -588,6 +589,7 @@ fun ChatBubble(
             modifier = modifier.fillMaxWidth(),
             horizontalAlignment = if (isSentByMe) Alignment.End else Alignment.Start
         ) {
+            val linkColor = if (isSentByMe) textColor else MaterialTheme.colorScheme.primary
             Box(
                 modifier = Modifier
                     .widthIn(min = 60.dp, max = 290.dp)
@@ -595,12 +597,23 @@ fun ChatBubble(
                     .background(bgColor)
                     .padding(horizontal = 16.dp, vertical = 10.dp)
             ) {
-                Text(
-                    text = messageText,
-                    color = textColor,
-                    fontSize = 15.sp,
-                    lineHeight = 21.sp
-                )
+                if (onUrlClick != null) {
+                    MessageLinkText(
+                        text = messageText,
+                        textColor = textColor,
+                        linkColor = linkColor,
+                        fontSize = 15.sp,
+                        lineHeight = 21.sp,
+                        onUrlClick = onUrlClick
+                    )
+                } else {
+                    Text(
+                        text = messageText,
+                        color = textColor,
+                        fontSize = 15.sp,
+                        lineHeight = 21.sp
+                    )
+                }
             }
 
             if (!isNextSameSender) {
