@@ -1,8 +1,5 @@
 # Brome ProGuard / R8 Configuration Rules
-# Stage A: Shrink only (temporary -dontobfuscate)
-
-# Temporarily disable obfuscation during Stage A to isolate shrinking
--dontobfuscate
+# Full R8 optimization, shrinking, and obfuscation enabled
 
 # Preserve line numbers and source file names for readable stack traces in Play Console
 -keepattributes SourceFile,LineNumberTable
