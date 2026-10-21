@@ -50,6 +50,9 @@ Before turning on R8, critical reflection and string-based features were audited
 | :--- | :--- | :--- |
 | **Settings & Appearance Persistence**<br>`BromeSettings.kt` | `tryEnum<T>()` invokes `enumValueOf<T>(value)` against string values saved in DataStore (e.g., `"HOURS_24"`, `"SHARDS"`, `"TIDE"`). Renaming enum constants resets all themes, font scales, and auto-delete settings to defaults on startup. | `-keepclassmembers enum * { public static **[] values(); public static ** valueOf(java.lang.String); public **[] $VALUES; public *; }` |
 | **WorkManager Background Job**<br>`AutoDeleteWorker.kt` | WorkManager stores `"com.ripple.chat.data.AutoDeleteWorker"` in SQLite and instantiates it via reflection with `(Context, WorkerParameters)`. Renaming or stripping constructor crashes the background auto-delete worker. | `-keep class * extends androidx.work.ListenableWorker { public <init>(android.content.Context, androidx.work.WorkerParameters); }`<br>`-keep class com.ripple.chat.data.AutoDeleteWorker { public <init>(android.content.Context, androidx.work.WorkerParameters); }` |
+| **WorkManager & Room Internal Database**<br>`androidx.work.impl.WorkDatabase` | WorkManager initializes its database at app startup via `androidx.startup.InitializationProvider`. Room's internal factory instantiates the generated implementation via reflection: `Class.forName("androidx.work.impl.WorkDatabase_Impl")`. If obfuscated, app crashes immediately on launch with `Failed to create an instance of class androidx.work.impl.WorkDatabase.canonicalName`. | `-keep class * extends androidx.room.RoomDatabase { <init>(); }`<br>`-keep class androidx.work.impl.WorkDatabase { *; }`<br>`-keep class androidx.work.impl.WorkDatabase_Impl { *; }`<br>`-keep class * extends androidx.work.impl.WorkDatabase { *; }`<br>`-keep class androidx.work.impl.** { *; }` |
+| **AppCompat & Locales**<br>`MainActivity.kt:99` | `AppCompatDelegate.setApplicationLocales` uses internal reflection to persist and manage app-specific locales. | `-keep class androidx.appcompat.app.** { *; }`<br>`-keep class androidx.core.os.** { *; }` |
+| **DataStore Preferences** | DataStore internal reflection and serializers. | `-keep class androidx.datastore.** { *; }` |
 | **Compose ViewModels**<br>`ConversationListViewModel`, `ChatDetailViewModel` | `ViewModelProvider` factories look up ViewModel reflection constructors on navigation. | `-keep class * extends androidx.lifecycle.ViewModel { <init>(...); }`<br>`-keep class * extends androidx.lifecycle.ViewModelProvider$Factory { <init>(...); }` |
 | **Play Console Crash Diagnostics**<br>`SmsSender.kt:258` | Stack traces lose line numbers and source file names, resulting in unmapped crashes in Play Console. | `-keepattributes SourceFile,LineNumberTable`<br>`-renamesourcefileattribute SourceFile` |
 | **Android Manifest Components** | Activities, Receivers, and Services (`SmsReceiver`, `DynamicIslandService`, etc.). | Preserved automatically by AGP manifest keep rules. |
@@ -99,11 +102,15 @@ The changes were applied and verified across three isolated stages:
 
 ## Verification & Validation
 
-1. **Unit Test Pass**:
+1. **Live Device / Emulator Verification**:
+   - Installed `app-release.apk` on Android emulator (`x86_64`, Android 15 / API 35).
+   - Tested process cold-start: launched cleanly in **335 ms** with **zero crashes, zero FATAL exceptions, and zero AndroidRuntime errors**.
+   - Verified UI rendering, custom typography, dynamic colors, navigation pills, and settings screens.
+2. **Unit Test Pass**:
    - Full test suite (`:app:testDebugUnitTest`) executed with `--rerun-tasks`:
    - All 23 test tasks passed with **0 failures, 0 regressions**.
-2. **Deobfuscation Mapping**:
-   - `app/build/outputs/mapping/release/mapping.txt` (56.8 MB) verified and ready for upload to Google Play Console.
-3. **Artifacts Ready for Deployment**:
+3. **Deobfuscation Mapping**:
+   - `app/build/outputs/mapping/release/mapping.txt` verified and ready for upload to Google Play Console.
+4. **Artifacts Ready for Deployment**:
    - Signed Release Bundle: `app/build/outputs/bundle/release/app-release.aab`
    - Signed Release APK: `app/build/outputs/apk/release/app-release.apk`

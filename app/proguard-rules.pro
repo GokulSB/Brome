@@ -21,6 +21,15 @@
     public <init>(android.content.Context, androidx.work.WorkerParameters);
 }
 
+# WorkManager & Room Database (WorkDatabase_Impl is instantiated by Room via Class.forName)
+-keep class * extends androidx.room.RoomDatabase {
+    <init>();
+}
+-keep class androidx.work.impl.WorkDatabase { *; }
+-keep class androidx.work.impl.WorkDatabase_Impl { *; }
+-keep class * extends androidx.work.impl.WorkDatabase { *; }
+-keep class androidx.work.impl.** { *; }
+
 # AndroidX Lifecycle ViewModels (instantiated via ViewModelProvider reflection factories)
 -keep class * extends androidx.lifecycle.ViewModel {
     <init>(...);
@@ -28,6 +37,13 @@
 -keep class * extends androidx.lifecycle.ViewModelProvider$Factory {
     <init>(...);
 }
+
+# AppCompat & Locales (used by AppCompatDelegate.setApplicationLocales in MainActivity)
+-keep class androidx.appcompat.app.** { *; }
+-keep class androidx.core.os.** { *; }
+
+# DataStore Preferences
+-keep class androidx.datastore.** { *; }
 
 # Coroutines internal dispatchers and handlers
 -keepnames class kotlinx.coroutines.internal.MainDispatcherFactory {}
