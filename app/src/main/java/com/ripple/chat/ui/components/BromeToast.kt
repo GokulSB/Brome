@@ -108,10 +108,25 @@ object BromeToast {
     }
 }
 
+private data class ToastDynamicTheme(
+    val containerColor: androidx.compose.ui.graphics.Color,
+    val contentColor: androidx.compose.ui.graphics.Color,
+    val iconBadgeColor: androidx.compose.ui.graphics.Color,
+    val iconTint: androidx.compose.ui.graphics.Color
+)
+
 @Composable
 fun BromeToastHost(modifier: Modifier = Modifier) {
     val toastInfo by BromeToast.currentToast.collectAsState()
     var visibleToast by remember { mutableStateOf<BromeToast.ToastInfo?>(null) }
+    val appearance = com.ripple.chat.theme.LocalBromeAppearance.current
+
+    val maxBottomHeight = maxOf(
+        appearance.navPillHeightDp,
+        appearance.fabSizeDp,
+        (72f * appearance.selectionBarScale).toInt()
+    )
+    val toastBottomClearance = (maxBottomHeight + 48).coerceAtLeast(120).dp
 
     LaunchedEffect(toastInfo) {
         if (toastInfo != null) {
@@ -143,7 +158,7 @@ fun BromeToastHost(modifier: Modifier = Modifier) {
             .zIndex(100f)
             .imePadding()
             .navigationBarsPadding()
-            .padding(bottom = 96.dp, start = 20.dp, end = 20.dp)
+            .padding(bottom = toastBottomClearance, start = 20.dp, end = 20.dp)
     ) {
         visibleToast?.let { toast ->
             val toastType = toast.type
@@ -168,33 +183,41 @@ fun BromeToastHost(modifier: Modifier = Modifier) {
                 }
             }
 
-            val (iconContainerColor, iconColor) = when (toastType) {
-                BromeToast.ToastType.SUCCESS -> Pair(
-                    MaterialTheme.colorScheme.primaryContainer,
-                    MaterialTheme.colorScheme.onPrimaryContainer
+            val themeColors = when (toastType) {
+                BromeToast.ToastType.SUCCESS -> ToastDynamicTheme(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    iconBadgeColor = MaterialTheme.colorScheme.primary,
+                    iconTint = MaterialTheme.colorScheme.onPrimary
                 )
-                BromeToast.ToastType.WARNING -> Pair(
-                    MaterialTheme.colorScheme.tertiaryContainer,
-                    MaterialTheme.colorScheme.onTertiaryContainer
+                BromeToast.ToastType.WARNING -> ToastDynamicTheme(
+                    containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
+                    iconBadgeColor = MaterialTheme.colorScheme.tertiary,
+                    iconTint = MaterialTheme.colorScheme.onTertiary
                 )
-                BromeToast.ToastType.ERROR -> Pair(
-                    MaterialTheme.colorScheme.errorContainer,
-                    MaterialTheme.colorScheme.onErrorContainer
+                BromeToast.ToastType.ERROR -> ToastDynamicTheme(
+                    containerColor = MaterialTheme.colorScheme.errorContainer,
+                    contentColor = MaterialTheme.colorScheme.onErrorContainer,
+                    iconBadgeColor = MaterialTheme.colorScheme.error,
+                    iconTint = MaterialTheme.colorScheme.onError
                 )
-                BromeToast.ToastType.INFO -> Pair(
-                    MaterialTheme.colorScheme.secondaryContainer,
-                    MaterialTheme.colorScheme.onSecondaryContainer
+                BromeToast.ToastType.INFO -> ToastDynamicTheme(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                    contentColor = MaterialTheme.colorScheme.onSurface,
+                    iconBadgeColor = MaterialTheme.colorScheme.secondary,
+                    iconTint = MaterialTheme.colorScheme.onSecondary
                 )
             }
 
             Surface(
                 shape = CircleShape,
-                color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                color = themeColors.containerColor,
                 tonalElevation = 6.dp,
                 shadowElevation = 8.dp,
                 border = BorderStroke(
                     width = 1.dp,
-                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
+                    color = themeColors.contentColor.copy(alpha = 0.25f)
                 ),
                 modifier = Modifier
                     .clickable(
@@ -211,14 +234,14 @@ fun BromeToastHost(modifier: Modifier = Modifier) {
                 ) {
                     Surface(
                         shape = CircleShape,
-                        color = iconContainerColor,
+                        color = themeColors.iconBadgeColor,
                         modifier = Modifier.size(28.dp)
                     ) {
                         Box(contentAlignment = Alignment.Center) {
                             Icon(
                                 imageVector = icon,
                                 contentDescription = null,
-                                tint = iconColor,
+                                tint = themeColors.iconTint,
                                 modifier = Modifier.size(16.dp)
                             )
                         }
@@ -227,7 +250,7 @@ fun BromeToastHost(modifier: Modifier = Modifier) {
                         text = toast.message,
                         style = MaterialTheme.typography.labelLarge,
                         fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onSurface,
+                        color = themeColors.contentColor,
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis
                     )

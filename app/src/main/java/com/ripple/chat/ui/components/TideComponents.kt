@@ -969,6 +969,7 @@ private fun TideSelectionIconButton(
     contentColor: Color,
     buttonSize: Dp,
     buttonWidth: Dp = buttonSize,
+    iconSize: Dp = 24.dp,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -997,7 +998,7 @@ private fun TideSelectionIconButton(
             color = containerColor,
             modifier = modifier
                 .size(width = buttonWidth, height = buttonSize)
-                .defaultMinSize(minWidth = 48.dp, minHeight = 48.dp)
+                .minimumInteractiveComponentSize()
                 .pressScale()
                 .semantics {
                     role = Role.Button
@@ -1017,7 +1018,7 @@ private fun TideSelectionIconButton(
                         imageVector = currentIcon,
                         contentDescription = contentDescription,
                         tint = contentColor,
-                        modifier = Modifier.size(24.dp)
+                        modifier = Modifier.size(iconSize)
                     )
                 }
             }
@@ -1106,6 +1107,13 @@ fun TideSelectionActionBar(
     onOverflowClick: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
+    val appearance = com.ripple.chat.theme.LocalBromeAppearance.current
+    val scale = appearance.selectionBarScale.coerceIn(0.70f, 1.0f)
+    val barHeight = (72f * scale).dp
+    val barCornerRadius = (36f * scale).dp
+    val barPadding = (8f * scale).coerceAtLeast(4f).dp
+    val iconSize = (24f * scale).coerceIn(16f, 24f).dp
+
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -1114,12 +1122,12 @@ fun TideSelectionActionBar(
         contentAlignment = Alignment.Center
     ) {
         Surface(
-            shape = RoundedCornerShape(36.dp),
+            shape = RoundedCornerShape(barCornerRadius),
             color = MaterialTheme.colorScheme.surfaceContainer,
             shadowElevation = 8.dp,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(72.dp)
+                .height(barHeight)
                 .semantics {
                     liveRegion = LiveRegionMode.Polite
                 }
@@ -1127,15 +1135,18 @@ fun TideSelectionActionBar(
             BoxWithConstraints(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(8.dp),
+                    .padding(barPadding),
                 contentAlignment = Alignment.Center
             ) {
                 val availableWidth = maxWidth
-                // 5 buttons total: 4 circular buttons and 1 wider archive pill (20dp wider)
-                val extraPillWidth = 20.dp
-                val gap = if (availableWidth < 312.dp) 6.dp else 8.dp
+                // 5 buttons total: 4 circular buttons and 1 wider archive pill
+                val extraPillWidth = (20f * scale).dp
+                val baseGap = if (availableWidth < 312.dp) 6f else 8f
+                val gap = (baseGap * scale).coerceAtLeast(4f).dp
                 val totalGaps = gap * 4
-                val calculatedBase = ((availableWidth - totalGaps - extraPillWidth) / 5).coerceIn(44.dp, 52.dp)
+                val minBase = (44f * scale).dp
+                val maxBase = (52f * scale).dp
+                val calculatedBase = ((availableWidth - totalGaps - extraPillWidth) / 5).coerceIn(minBase, maxBase)
                 val pillWidth = calculatedBase + extraPillWidth
 
                 Row(
@@ -1153,6 +1164,7 @@ fun TideSelectionActionBar(
                         containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
                         contentColor = MaterialTheme.colorScheme.onSurface,
                         buttonSize = calculatedBase,
+                        iconSize = iconSize,
                         onClick = onSelectAllToggle
                     )
 
@@ -1167,6 +1179,7 @@ fun TideSelectionActionBar(
                         containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
                         contentColor = MaterialTheme.colorScheme.onSurface,
                         buttonSize = calculatedBase,
+                        iconSize = iconSize,
                         onClick = {
                             if (isMarkReadAction) onMarkReadClick?.invoke() else onMarkUnreadClick?.invoke()
                         }
@@ -1184,6 +1197,7 @@ fun TideSelectionActionBar(
                         containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
                         contentColor = starContentColor,
                         buttonSize = calculatedBase,
+                        iconSize = iconSize,
                         onClick = onStarClick
                     )
 
@@ -1206,6 +1220,7 @@ fun TideSelectionActionBar(
                         contentColor = MaterialTheme.colorScheme.onPrimary,
                         buttonSize = calculatedBase,
                         buttonWidth = pillWidth,
+                        iconSize = iconSize,
                         onClick = {
                             if (isSpamTab) onNotSpamClick?.invoke() ?: onArchiveClick() else onArchiveClick()
                         }
@@ -1219,6 +1234,7 @@ fun TideSelectionActionBar(
                         containerColor = MaterialTheme.colorScheme.errorContainer,
                         contentColor = MaterialTheme.colorScheme.onErrorContainer,
                         buttonSize = calculatedBase,
+                        iconSize = iconSize,
                         onClick = { onDeleteClick?.invoke() }
                     )
                 }

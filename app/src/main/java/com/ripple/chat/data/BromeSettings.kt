@@ -61,7 +61,8 @@ data class BromeAppearance(
     val trashAutoDelete: TrashAutoDeleteTime = TrashAutoDeleteTime.DAYS_30,
     val languageCode: String = "system",
     val categoryGridColumns: Int = 2,
-    val categoryGridRows: Int = 2
+    val categoryGridRows: Int = 2,
+    val selectionBarScale: Float = 1.0f
 )
 
 enum class IslandPeekLeft(val label: String) {
@@ -140,6 +141,7 @@ class BromeSettings(private val context: Context) {
         val LANGUAGE_CODE = stringPreferencesKey("brome_language_code")
         val CATEGORY_GRID_COLUMNS = intPreferencesKey("category_grid_columns")
         val CATEGORY_GRID_ROWS = intPreferencesKey("category_grid_rows")
+        val SELECTION_BAR_SCALE = floatPreferencesKey("brome_selection_bar_scale")
 
         // Dynamic Island Preferences
         val ISLAND_ENABLED = booleanPreferencesKey("island_enabled")
@@ -197,7 +199,8 @@ class BromeSettings(private val context: Context) {
                 trashAutoDelete = tryEnum(prefs[K.TRASH_AUTO_DELETE], TrashAutoDeleteTime.DAYS_30),
                 languageCode = prefs[K.LANGUAGE_CODE] ?: "system",
                 categoryGridColumns = (prefs[K.CATEGORY_GRID_COLUMNS] ?: 2).coerceIn(2, 4),
-                categoryGridRows = (prefs[K.CATEGORY_GRID_ROWS] ?: 2).coerceIn(1, 3)
+                categoryGridRows = (prefs[K.CATEGORY_GRID_ROWS] ?: 2).coerceIn(1, 3),
+                selectionBarScale = (prefs[K.SELECTION_BAR_SCALE] ?: 1.0f).coerceIn(0.70f, 1.0f)
             ).also { Log.d("BromeSettings", "emit appearance=$it") }
         }
         .distinctUntilChanged()
@@ -316,6 +319,9 @@ class BromeSettings(private val context: Context) {
     suspend fun setLanguageCode(code: String) = write("language_code", code) { it[K.LANGUAGE_CODE] = code }
     suspend fun setCategoryGridColumns(cols: Int) = write("category_grid_columns", cols) { it[K.CATEGORY_GRID_COLUMNS] = cols.coerceIn(2, 4) }
     suspend fun setCategoryGridRows(rows: Int) = write("category_grid_rows", rows) { it[K.CATEGORY_GRID_ROWS] = rows.coerceIn(1, 3) }
+    suspend fun setSelectionBarScale(scale: Float) = write("selection_bar_scale", scale) {
+        it[K.SELECTION_BAR_SCALE] = scale.coerceIn(0.70f, 1.0f)
+    }
 
     private suspend fun write(name: String, value: Any, block: (MutablePreferences) -> Unit) {
         Log.d("BromeSettings", "write $name=$value")

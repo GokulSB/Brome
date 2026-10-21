@@ -823,7 +823,7 @@ fun LayoutDetailPage(
             // Block 1: Navigation & Buttons
             SettingBlock(
                 title = "Navigation and buttons",
-                description = "Bottom nav pill and compose FAB dimensions",
+                description = "Bottom nav pill, compose FAB, and selection bar dimensions",
                 icon = Icons.Rounded.Navigation,
                 iconShape = Cookie8Shape,
                 cardShape = rememberTideCornerShape(1)
@@ -1864,6 +1864,7 @@ fun NavigationButtonsContent(
 ) {
     var navHeightState by remember(appearance.navPillHeightDp) { mutableStateOf(appearance.navPillHeightDp.toFloat()) }
     var fabSizeState by remember(appearance.fabSizeDp) { mutableStateOf(appearance.fabSizeDp.toFloat()) }
+    var selectionBarScaleState by remember(appearance.selectionBarScale) { mutableStateOf(appearance.selectionBarScale) }
 
     Column(modifier = Modifier.fillMaxWidth()) {
         // Live Preview Box
@@ -1958,6 +1959,56 @@ fun NavigationButtonsContent(
                         }
                     }
                 }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // Selection Bar Mini Preview
+                val previewScale = selectionBarScaleState
+                val previewBarH = (32f * previewScale).dp
+                val previewCorner = (16f * previewScale).dp
+                val previewBtnH = (22f * previewScale).dp
+                val previewIconSz = (12f * previewScale).coerceAtLeast(9f).dp
+
+                Surface(
+                    shape = RoundedCornerShape(previewCorner),
+                    color = MaterialTheme.colorScheme.surfaceContainer,
+                    modifier = Modifier.fillMaxWidth().height(previewBarH)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxSize().padding(horizontal = (6f * previewScale).dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        listOf(
+                            Icons.Rounded.SelectAll to MaterialTheme.colorScheme.surfaceContainerHighest,
+                            Icons.Rounded.MarkEmailRead to MaterialTheme.colorScheme.surfaceContainerHighest,
+                            Icons.Rounded.StarOutline to MaterialTheme.colorScheme.surfaceContainerHighest,
+                            Icons.Rounded.Archive to MaterialTheme.colorScheme.primary,
+                            Icons.Rounded.Delete to MaterialTheme.colorScheme.errorContainer
+                        ).forEachIndexed { i, (icon, bg) ->
+                            val isPill = i == 3
+                            val tint = when (i) {
+                                3 -> MaterialTheme.colorScheme.onPrimary
+                                4 -> MaterialTheme.colorScheme.onErrorContainer
+                                else -> MaterialTheme.colorScheme.onSurface
+                            }
+                            Surface(
+                                shape = CircleShape,
+                                color = bg,
+                                modifier = Modifier.size(width = if (isPill) previewBtnH * 1.35f else previewBtnH, height = previewBtnH)
+                            ) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    Icon(
+                                        imageVector = icon,
+                                        contentDescription = null,
+                                        tint = tint,
+                                        modifier = Modifier.size(previewIconSz)
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
 
@@ -2032,6 +2083,45 @@ fun NavigationButtonsContent(
                 coroutineScope.launch { bromeSettings.setFabSizeDp(it.toInt()) }
             },
             valueRange = 42f..66f,
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // 3. Selection Bar Size Slider
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                "Selection bar size",
+                fontFamily = FigtreeFontFamily,
+                fontWeight = FontWeight.Bold,
+                fontSize = 14.sp
+            )
+            val scalePercent = (selectionBarScaleState * 100).toInt()
+            val scaleLabel = when {
+                selectionBarScaleState <= 0.78f -> "Compact"
+                selectionBarScaleState <= 0.90f -> "Medium"
+                else -> "Default"
+            }
+            Text(
+                "$scalePercent% ($scaleLabel)",
+                fontFamily = FigtreeFontFamily,
+                fontWeight = FontWeight.Bold,
+                fontSize = 12.sp,
+                color = MaterialTheme.colorScheme.primary
+            )
+        }
+        Spacer(modifier = Modifier.height(4.dp))
+        Slider(
+            value = selectionBarScaleState,
+            onValueChange = {
+                selectionBarScaleState = it
+                coroutineScope.launch { bromeSettings.setSelectionBarScale(it) }
+            },
+            valueRange = 0.70f..1.0f,
             modifier = Modifier.fillMaxWidth()
         )
     }

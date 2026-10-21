@@ -217,4 +217,58 @@ class SelectionActionBarTest {
         val starLabel = if (allStarred) "Unstar" else "Star"
         assertEquals("Unstar", starLabel)
     }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // CHECK 8: Selection bar scaling slider calculations
+    // ─────────────────────────────────────────────────────────────────────────
+    @Test
+    fun testSelectionBarScalingCalculation() {
+        val scales = listOf(0.70f, 0.80f, 0.90f, 1.0f)
+        for (scale in scales) {
+            val barHeight = 72f * scale
+            val barCornerRadius = 36f * scale
+            val iconSize = (24f * scale).coerceIn(16f, 24f)
+            val availableWidth = 304f
+            val extraPillWidth = 20f * scale
+            val baseGap = if (availableWidth < 312f) 6f else 8f
+            val gap = (baseGap * scale).coerceAtLeast(4f)
+            val totalGaps = gap * 4f
+            val minBase = 44f * scale
+            val maxBase = 52f * scale
+            val calculatedBase = ((availableWidth - totalGaps - extraPillWidth) / 5f).coerceIn(minBase, maxBase)
+            val pillWidth = calculatedBase + extraPillWidth
+
+            assertTrue("Bar height must be between 50 and 72", barHeight in 50f..72.01f)
+            assertTrue("Bar corner must be half of bar height", kotlin.math.abs(barHeight / 2f - barCornerRadius) < 0.01f)
+            assertTrue("Icon size must scale proportionally down to 16dp min", iconSize in 16f..24.01f)
+            val totalOccupied = (calculatedBase * 4f) + pillWidth + totalGaps
+            assertTrue("Total width must fit in available width", totalOccupied <= availableWidth)
+        }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // CHECK 9: Toast clearance above navigation pill and selection bar
+    // ─────────────────────────────────────────────────────────────────────────
+    @Test
+    fun testToastPillClearanceAboveNavAndSelectionBar() {
+        val navHeights = listOf(49, 56, 68)
+        val fabSizes = listOf(42, 47, 66)
+        val scales = listOf(0.70f, 0.85f, 1.0f)
+
+        for (nav in navHeights) {
+            for (fab in fabSizes) {
+                for (scale in scales) {
+                    val selectionBarHeight = (72f * scale).toInt()
+                    val maxBottom = maxOf(nav, fab, selectionBarHeight)
+                    val toastClearance = (maxBottom + 48).coerceAtLeast(120)
+
+                    // The top edge of nav pill or selection bar is 24dp (bottom padding) + maxBottom
+                    val topEdgeOfBottomBar = 24 + maxBottom
+                    val clearanceGap = toastClearance - topEdgeOfBottomBar
+
+                    assertTrue("Toast bottom clearance ($toastClearance dp) must be strictly above bottom bar ($topEdgeOfBottomBar dp) by at least 24dp", clearanceGap >= 24)
+                }
+            }
+        }
+    }
 }
