@@ -60,6 +60,7 @@ fun StarredScreen(
     val selectedThreadIds by chatsViewModel.selectedThreadIds.collectAsState()
 
     var showReminderDialog by remember { mutableStateOf(false) }
+    var showDeleteConfirmDialog by remember { mutableStateOf(false) }
 
     var snackbarMessage by remember { mutableStateOf<String?>(null) }
     var undoAction by remember { mutableStateOf<(() -> Unit)?>(null) }
@@ -107,13 +108,19 @@ fun StarredScreen(
 
             // Header Row
             if (isSelectionMode) {
+                val allSelected = filteredList.isNotEmpty() && selectedThreadIds.size >= filteredList.size && filteredList.all { it.threadId in selectedThreadIds }
                 TideSelectionTopBar(
                     selectedCount = selectedThreadIds.size,
+                    isAllSelected = allSelected,
                     onCloseClick = {
                         chatsViewModel.clearSelection()
                     },
                     onSelectAllClick = {
-                        chatsViewModel.selectAll(filteredList.map { it.threadId })
+                        if (allSelected) {
+                            chatsViewModel.clearSelection()
+                        } else {
+                            chatsViewModel.selectAll(filteredList.map { it.threadId })
+                        }
                     }
                 )
             } else {
@@ -298,33 +305,80 @@ fun StarredScreen(
             exit = slideOutVertically(targetOffsetY = { it }) + fadeOut(),
             modifier = Modifier.align(Alignment.BottomCenter)
         ) {
+            val allSelected = filteredList.isNotEmpty() && selectedThreadIds.size >= filteredList.size && filteredList.all { it.threadId in selectedThreadIds }
+            val selectedList = filteredList.filter { it.threadId in selectedThreadIds }
+            val hasUnreadSelected = selectedList.any { !it.read }
+
+            fun executeDelete(ids: Set<Long>) {
+                val count = ids.size
+                chatsViewModel.deleteThreads(ids)
+                val msg = if (count == 1) "Moved 1 conversation to Trash" else "Moved $count conversations to Trash"
+                showUndo(msg) {
+                    chatsViewModel.restoreThreads(ids)
+                }
+                chatsViewModel.clearSelection()
+            }
+
             TideSelectionActionBar(
                 selectedCount = selectedThreadIds.size,
+                isAllSelected = allSelected,
+                onSelectAllToggle = {
+                    if (allSelected) {
+                        chatsViewModel.clearSelection()
+                    } else {
+                        chatsViewModel.selectAll(filteredList.map { it.threadId })
+                    }
+                },
                 allStarred = true,
                 isStarredScreen = true,
+                hasUnreadSelected = hasUnreadSelected,
+                onMarkReadClick = {
+                    val count = selectedThreadIds.size
+                    val idsToProcess = selectedThreadIds.toList()
+                    chatsViewModel.markAllAsRead(idsToProcess)
+                    val msg = if (count == 1) "Marked 1 conversation as read" else "Marked $count conversations as read"
+                    showUndo(msg) {
+                        chatsViewModel.markAllAsUnread(idsToProcess)
+                    }
+                    chatsViewModel.clearSelection()
+                },
+                onMarkUnreadClick = {
+                    val count = selectedThreadIds.size
+                    val idsToProcess = selectedThreadIds.toList()
+                    chatsViewModel.markAllAsUnread(idsToProcess)
+                    val msg = if (count == 1) "Marked 1 conversation as unread" else "Marked $count conversations as unread"
+                    showUndo(msg) {
+                        chatsViewModel.markAllAsRead(idsToProcess)
+                    }
+                    chatsViewModel.clearSelection()
+                },
                 onStarClick = {
+                    val count = selectedThreadIds.size
                     val idsToUnstar = selectedThreadIds
                     chatsViewModel.unstarThreads(idsToUnstar)
-                    showUndo("Removed from Starred") {
+                    val msg = if (count == 1) "Removed 1 conversation from Starred" else "Removed $count conversations from Starred"
+                    showUndo(msg) {
                         chatsViewModel.starThreads(idsToUnstar)
                     }
                     chatsViewModel.clearSelection()
                 },
                 onArchiveClick = {
+                    val count = selectedThreadIds.size
                     val idsToArchive = selectedThreadIds
                     chatsViewModel.archiveThreads(idsToArchive)
-                    showUndo("Moved to Archive") {
+                    val msg = if (count == 1) "Moved to Archive" else "Archived $count conversations"
+                    showUndo(msg) {
                         chatsViewModel.unarchiveThreads(idsToArchive)
                     }
                     chatsViewModel.clearSelection()
                 },
                 onDeleteClick = {
                     val idsToDelete = selectedThreadIds.toSet()
-                    chatsViewModel.deleteThreads(idsToDelete)
-                    showUndo("Moved to Trash") {
-                        chatsViewModel.restoreThreads(idsToDelete)
+                    if (idsToDelete.size > 20) {
+                        showDeleteConfirmDialog = true
+                    } else {
+                        executeDelete(idsToDelete)
                     }
-                    chatsViewModel.clearSelection()
                 },
                 onOverflowClick = {
                     showReminderDialog = true
@@ -353,6 +407,24 @@ fun StarredScreen(
                 )
             }
         }
+    }
+
+    if (showDeleteConfirmDialog && selectedThreadIds.isNotEmpty()) {
+        val idsToDelete = selectedThreadIds.toSet()
+        DeleteConfirmationDialog(
+            count = idsToDelete.size,
+            onDismiss = { showDeleteConfirmDialog = false },
+            onConfirm = {
+                showDeleteConfirmDialog = false
+                val count = idsToDelete.size
+                chatsViewModel.deleteThreads(idsToDelete)
+                val msg = if (count == 1) "Moved 1 conversation to Trash" else "Moved $count conversations to Trash"
+                showUndo(msg) {
+                    chatsViewModel.restoreThreads(idsToDelete)
+                }
+                chatsViewModel.clearSelection()
+            }
+        )
     }
 
     if (showReminderDialog && selectedThreadIds.isNotEmpty()) {

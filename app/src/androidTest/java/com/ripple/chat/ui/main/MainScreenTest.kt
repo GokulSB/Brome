@@ -2,8 +2,6 @@ package com.ripple.chat.ui.main
 
 import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
-import androidx.compose.ui.test.onNodeWithText
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
@@ -12,15 +10,18 @@ class MainScreenTest {
 
   @get:Rule val composeTestRule = createAndroidComposeRule<ComponentActivity>()
 
-  @Before
-  fun setup() {
-    composeTestRule.setContent { MainScreen(FAKE_DATA) }
-  }
-
   @Test
-  fun firstItem_exists() {
-    FAKE_DATA.forEach { composeTestRule.onNodeWithText("Hello $it!").assertExists() }
+  fun mainScreen_rendersWithoutCrashing() {
+    composeTestRule.setContent {
+      MainScreen(
+        onNavigateToChat = { _, _, _, _, _ -> },
+        onNavigateToSettings = {},
+        onNavigateToProfile = {},
+        onNavigateToThemes = {},
+        onNavigateToTrash = {},
+        onNavigateToFinanceLedger = {},
+        onNavigateToNewMessage = {}
+      )
+    }
   }
 }
-
-private val FAKE_DATA = listOf("Sample1", "Sample2", "Sample3")

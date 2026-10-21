@@ -26,6 +26,7 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
+import androidx.compose.material3.TooltipAnchorPosition
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -41,6 +42,11 @@ import androidx.compose.ui.semantics.CustomAccessibilityAction
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.customActions
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.animation.core.tween
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -176,14 +182,20 @@ fun TideTopBar(
 // ─────────────────────────────────────────────────────────────────────────────
 // 1B. SELECTION MODE TOP BAR
 // ─────────────────────────────────────────────────────────────────────────────
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TideSelectionTopBar(
     selectedCount: Int,
+    isAllSelected: Boolean = false,
     onCloseClick: () -> Unit,
     onSelectAllClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val appearance = com.ripple.chat.theme.LocalBromeAppearance.current
+    val haptic = LocalHapticFeedback.current
+    val selectAllTooltip = if (isAllSelected) "Deselect all" else "Select all"
+    val selectAllTooltipState = rememberTooltipState()
+
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -193,10 +205,19 @@ fun TideSelectionTopBar(
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Surface(
-                onClick = onCloseClick,
+                onClick = {
+                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                    onCloseClick()
+                },
                 shape = RoundedCornerShape(appearance.cornerRadius.dp),
                 color = MaterialTheme.colorScheme.surfaceContainer,
-                modifier = Modifier.size(52.dp).pressScale()
+                modifier = Modifier
+                    .size(52.dp)
+                    .pressScale()
+                    .semantics {
+                        role = Role.Button
+                        contentDescription = "Exit Selection"
+                    }
             ) {
                 Box(contentAlignment = Alignment.Center) {
                     Icon(
@@ -215,23 +236,58 @@ fun TideSelectionTopBar(
                 fontFamily = BricolageFontFamily,
                 fontWeight = FontWeight.Bold,
                 fontSize = 24.sp,
-                color = MaterialTheme.colorScheme.onSurface
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.semantics {
+                    liveRegion = LiveRegionMode.Polite
+                }
             )
         }
 
-        Surface(
-            onClick = onSelectAllClick,
-            shape = RoundedCornerShape(appearance.cornerRadius.dp),
-            color = MaterialTheme.colorScheme.surfaceContainer,
-            modifier = Modifier.size(52.dp).pressScale()
+        TooltipBox(
+            positionProvider = TooltipDefaults.rememberTooltipPositionProvider(TooltipAnchorPosition.Above),
+            tooltip = {
+                PlainTooltip {
+                    Text(
+                        text = selectAllTooltip,
+                        fontFamily = FigtreeFontFamily,
+                        fontSize = 12.sp
+                    )
+                }
+            },
+            state = selectAllTooltipState
         ) {
-            Box(contentAlignment = Alignment.Center) {
-                Icon(
-                    Icons.Rounded.SelectAll,
-                    contentDescription = "Select All",
-                    tint = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.size(22.dp)
-                )
+            Surface(
+                onClick = {
+                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                    onSelectAllClick()
+                },
+                shape = RoundedCornerShape(appearance.cornerRadius.dp),
+                color = MaterialTheme.colorScheme.surfaceContainer,
+                modifier = Modifier
+                    .size(52.dp)
+                    .pressScale()
+                    .semantics {
+                        role = Role.Button
+                        contentDescription = selectAllTooltip
+                    }
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    AnimatedContent(
+                        targetState = isAllSelected,
+                        transitionSpec = {
+                            (fadeIn(animationSpec = tween(200)) + scaleIn(initialScale = 0.85f, animationSpec = tween(200)))
+                                .togetherWith(fadeOut(animationSpec = tween(200)) + scaleOut(targetScale = 0.85f, animationSpec = tween(200)))
+                        },
+                        label = "TopBarSelectAllCrossfade"
+                    ) { allSelectedState ->
+                        Icon(
+                            imageVector = if (allSelectedState) Icons.Rounded.Deselect else Icons.Rounded.SelectAll,
+                            contentDescription = if (allSelectedState) "Deselect all" else "Select all",
+                            tint = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.size(22.dp)
+                        )
+                    }
+                }
             }
         }
     }
@@ -903,9 +959,139 @@ fun TideMessageRow(
 // ─────────────────────────────────────────────────────────────────────────────
 // 4. FLOATING SELECTION ACTION BAR (PART 1)
 // ─────────────────────────────────────────────────────────────────────────────
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun TideSelectionIconButton(
+    icon: ImageVector,
+    contentDescription: String,
+    tooltipText: String,
+    containerColor: Color,
+    contentColor: Color,
+    buttonSize: Dp,
+    buttonWidth: Dp = buttonSize,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val tooltipState = rememberTooltipState()
+    val haptic = LocalHapticFeedback.current
+
+    TooltipBox(
+        positionProvider = TooltipDefaults.rememberTooltipPositionProvider(TooltipAnchorPosition.Above),
+        tooltip = {
+            PlainTooltip {
+                Text(
+                    text = tooltipText,
+                    fontFamily = FigtreeFontFamily,
+                    fontSize = 12.sp
+                )
+            }
+        },
+        state = tooltipState
+    ) {
+        Surface(
+            onClick = {
+                haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                onClick()
+            },
+            shape = CircleShape,
+            color = containerColor,
+            modifier = modifier
+                .size(width = buttonWidth, height = buttonSize)
+                .defaultMinSize(minWidth = 48.dp, minHeight = 48.dp)
+                .pressScale()
+                .semantics {
+                    role = Role.Button
+                    this.contentDescription = contentDescription
+                }
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                AnimatedContent(
+                    targetState = icon,
+                    transitionSpec = {
+                        (fadeIn(animationSpec = tween(200)) + scaleIn(initialScale = 0.85f, animationSpec = tween(200)))
+                            .togetherWith(fadeOut(animationSpec = tween(200)) + scaleOut(targetScale = 0.85f, animationSpec = tween(200)))
+                    },
+                    label = "SelectionBarIconTransition"
+                ) { currentIcon ->
+                    Icon(
+                        imageVector = currentIcon,
+                        contentDescription = contentDescription,
+                        tint = contentColor,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun DeleteConfirmationDialog(
+    count: Int,
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        icon = {
+            Icon(
+                imageVector = Icons.Rounded.Delete,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.error,
+                modifier = Modifier.size(28.dp)
+            )
+        },
+        title = {
+            Text(
+                text = "Delete $count conversations?",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+        },
+        text = {
+            Text(
+                text = "These conversations will be moved to the recycle bin.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        },
+        confirmButton = {
+            Button(
+                onClick = onConfirm,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.error,
+                    contentColor = MaterialTheme.colorScheme.onError
+                ),
+                shape = CircleShape
+            ) {
+                Text(
+                    text = "Delete",
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(
+                    text = "Cancel",
+                    fontWeight = FontWeight.Medium
+                )
+            }
+        },
+        shape = RoundedCornerShape(28.dp),
+        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+    )
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 4. FLOATING SELECTION ACTION BAR (ICON-ONLY WITH SELECT ALL / DESELECT ALL)
+// ─────────────────────────────────────────────────────────────────────────────
 @Composable
 fun TideSelectionActionBar(
     selectedCount: Int,
+    isAllSelected: Boolean,
+    onSelectAllToggle: () -> Unit,
     allStarred: Boolean,
     isArchiveScreen: Boolean = false,
     isStarredScreen: Boolean = false,
@@ -924,199 +1110,125 @@ fun TideSelectionActionBar(
         modifier = modifier
             .fillMaxWidth()
             .navigationBarsPadding()
-            .padding(horizontal = 16.dp, vertical = 12.dp),
+            .padding(horizontal = 20.dp, vertical = 24.dp),
         contentAlignment = Alignment.Center
     ) {
         Surface(
-            shape = CircleShape,
+            shape = RoundedCornerShape(36.dp),
             color = MaterialTheme.colorScheme.surfaceContainer,
             shadowElevation = 8.dp,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(64.dp)
+                .height(72.dp)
+                .semantics {
+                    liveRegion = LiveRegionMode.Polite
+                }
         ) {
-            Row(
+            BoxWithConstraints(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(horizontal = 8.dp, vertical = 6.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    .padding(8.dp),
+                contentAlignment = Alignment.Center
             ) {
-                if (isSpamTab) {
-                    // Not Spam Pill
-                    Surface(
-                        onClick = { onNotSpamClick?.invoke() },
-                        shape = CircleShape,
-                        color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier
-                            .weight(1f)
-                            .fillMaxHeight()
-                            .pressScale()
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(horizontal = 4.dp),
-                            horizontalArrangement = Arrangement.Center,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(
-                                Icons.Rounded.CheckCircle,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onPrimary,
-                                modifier = Modifier.size(18.dp)
-                            )
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text(
-                                text = "Not Spam",
-                                fontFamily = FigtreeFontFamily,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 13.sp,
-                                color = MaterialTheme.colorScheme.onPrimary,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                        }
-                    }
-                } else {
-                    if (onMarkReadClick != null || onMarkUnreadClick != null) {
-                        val isMarkRead = hasUnreadSelected
-                        val readPillLabel = if (isMarkRead) "Read" else "Unread"
-                        val readPillIcon = if (isMarkRead) Icons.Rounded.Drafts else Icons.Rounded.MarkEmailUnread
-                        Surface(
-                            onClick = {
-                                if (isMarkRead) onMarkReadClick?.invoke() else onMarkUnreadClick?.invoke()
-                            },
-                            shape = CircleShape,
-                            color = MaterialTheme.colorScheme.surfaceContainerHighest,
-                            modifier = Modifier
-                                .weight(1f)
-                                .fillMaxHeight()
-                                .pressScale()
-                        ) {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .padding(horizontal = 4.dp),
-                                horizontalArrangement = Arrangement.Center,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Icon(
-                                    readPillIcon,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.size(18.dp)
-                                )
-                                Spacer(modifier = Modifier.width(4.dp))
-                                Text(
-                                    text = readPillLabel,
-                                    fontFamily = FigtreeFontFamily,
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 13.sp,
-                                    color = MaterialTheme.colorScheme.onSurface,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis
-                                )
-                            }
-                        }
-                    }
-                    // Star Pill
-                    val starLabel = if (isStarredScreen || allStarred) "Unstar" else "Star"
-                    Surface(
-                        onClick = onStarClick,
-                        shape = CircleShape,
-                        color = MaterialTheme.colorScheme.surfaceContainerHighest,
-                        modifier = Modifier
-                            .weight(1f)
-                            .fillMaxHeight()
-                            .pressScale()
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(horizontal = 4.dp),
-                            horizontalArrangement = Arrangement.Center,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(
-                                if (allStarred || isStarredScreen) Icons.Rounded.Star else Icons.Rounded.StarOutline,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(18.dp)
-                            )
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text(
-                                text = starLabel,
-                                fontFamily = FigtreeFontFamily,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 13.sp,
-                                color = MaterialTheme.colorScheme.onSurface,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                        }
-                    }
+                val availableWidth = maxWidth
+                // 5 buttons total: 4 circular buttons and 1 wider archive pill (20dp wider)
+                val extraPillWidth = 20.dp
+                val gap = if (availableWidth < 312.dp) 6.dp else 8.dp
+                val totalGaps = gap * 4
+                val calculatedBase = ((availableWidth - totalGaps - extraPillWidth) / 5).coerceIn(44.dp, 52.dp)
+                val pillWidth = calculatedBase + extraPillWidth
 
-                    // Archive Pill
-                    val archiveLabel = if (isArchiveScreen) "Unarchive" else "Archive"
-                    Surface(
-                        onClick = onArchiveClick,
-                        shape = CircleShape,
-                        color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier
-                            .weight(1f)
-                            .fillMaxHeight()
-                            .pressScale()
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(horizontal = 4.dp),
-                            horizontalArrangement = Arrangement.Center,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(
-                                if (isArchiveScreen) Icons.Rounded.Unarchive else Icons.Rounded.Archive,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onPrimary,
-                                modifier = Modifier.size(18.dp)
-                            )
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text(
-                                text = archiveLabel,
-                                fontFamily = FigtreeFontFamily,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 13.sp,
-                                color = MaterialTheme.colorScheme.onPrimary,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                        }
-                    }
-                }
-
-                // 50dp Delete Circle Button (replaces three-dot overflow menu)
-                Surface(
-                    onClick = { onDeleteClick?.invoke() },
-                    shape = CircleShape,
-                    color = MaterialTheme.colorScheme.errorContainer,
-                    modifier = Modifier
-                        .size(50.dp)
-                        .pressScale()
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Icon(
-                            Icons.Rounded.Delete,
-                            contentDescription = "Delete",
-                            tint = MaterialTheme.colorScheme.onErrorContainer,
-                            modifier = Modifier.size(20.dp)
-                        )
+                    // 1. Select all / Deselect all
+                    val selectAllIcon = if (isAllSelected) Icons.Rounded.Deselect else Icons.Rounded.SelectAll
+                    val selectAllLabel = if (isAllSelected) "Deselect all" else "Select all"
+                    TideSelectionIconButton(
+                        icon = selectAllIcon,
+                        contentDescription = selectAllLabel,
+                        tooltipText = selectAllLabel,
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                        contentColor = MaterialTheme.colorScheme.onSurface,
+                        buttonSize = calculatedBase,
+                        onClick = onSelectAllToggle
+                    )
+
+                    // 2. Mark read / unread
+                    val isMarkReadAction = hasUnreadSelected
+                    val readIcon = if (isMarkReadAction) Icons.Rounded.MarkEmailRead else Icons.Rounded.MarkEmailUnread
+                    val readLabel = if (isMarkReadAction) "Mark as read" else "Mark as unread"
+                    TideSelectionIconButton(
+                        icon = readIcon,
+                        contentDescription = readLabel,
+                        tooltipText = readLabel,
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                        contentColor = MaterialTheme.colorScheme.onSurface,
+                        buttonSize = calculatedBase,
+                        onClick = {
+                            if (isMarkReadAction) onMarkReadClick?.invoke() else onMarkUnreadClick?.invoke()
+                        }
+                    )
+
+                    // 3. Star / Unstar
+                    val isStarred = allStarred || isStarredScreen
+                    val starIcon = if (isStarred) Icons.Rounded.Star else Icons.Rounded.StarOutline
+                    val starLabel = if (isStarred) "Unstar" else "Star"
+                    val starContentColor = if (isStarred) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                    TideSelectionIconButton(
+                        icon = starIcon,
+                        contentDescription = starLabel,
+                        tooltipText = starLabel,
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                        contentColor = starContentColor,
+                        buttonSize = calculatedBase,
+                        onClick = onStarClick
+                    )
+
+                    // 4. Archive / Unarchive (Primary pill action, slightly wider)
+                    val archiveIcon = when {
+                        isSpamTab -> Icons.Rounded.CheckCircle
+                        isArchiveScreen -> Icons.Rounded.Unarchive
+                        else -> Icons.Rounded.Archive
                     }
+                    val archiveLabel = when {
+                        isSpamTab -> "Not spam"
+                        isArchiveScreen -> "Unarchive"
+                        else -> "Archive"
+                    }
+                    TideSelectionIconButton(
+                        icon = archiveIcon,
+                        contentDescription = archiveLabel,
+                        tooltipText = archiveLabel,
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary,
+                        buttonSize = calculatedBase,
+                        buttonWidth = pillWidth,
+                        onClick = {
+                            if (isSpamTab) onNotSpamClick?.invoke() ?: onArchiveClick() else onArchiveClick()
+                        }
+                    )
+
+                    // 5. Delete (Red error container circle)
+                    TideSelectionIconButton(
+                        icon = Icons.Rounded.Delete,
+                        contentDescription = "Delete",
+                        tooltipText = "Delete",
+                        containerColor = MaterialTheme.colorScheme.errorContainer,
+                        contentColor = MaterialTheme.colorScheme.onErrorContainer,
+                        buttonSize = calculatedBase,
+                        onClick = { onDeleteClick?.invoke() }
+                    )
                 }
             }
         }
     }
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 5. UNDO SNACKBAR
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 5. UNDO SNACKBAR
