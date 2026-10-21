@@ -497,38 +497,11 @@ fun ChatsScreen(
                         else -> AppStrings.categoryName(selectedCategoryKey!!).uppercase()
                     }
 
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        Text(
-                            text = categoryLabel,
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-
-                        if (filteredList.isNotEmpty()) {
-                            val allSelected = isSelectionMode && selectedThreadIds.size >= filteredList.size
-                            IconButton(
-                                onClick = {
-                                    if (allSelected) {
-                                        chatsViewModel.clearSelection()
-                                    } else {
-                                        chatsViewModel.setSelectionMode(true)
-                                        chatsViewModel.selectAll(filteredList.map { it.threadId })
-                                    }
-                                },
-                                modifier = Modifier.size(24.dp)
-                            ) {
-                                Icon(
-                                    imageVector = if (allSelected) Icons.Rounded.Deselect else Icons.Rounded.SelectAll,
-                                    contentDescription = if (allSelected) "Deselect All" else "Select All",
-                                    tint = if (allSelected || isSelectionMode) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                                    modifier = Modifier.size(16.dp)
-                                )
-                            }
-                        }
-                    }
+                    Text(
+                        text = categoryLabel,
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
 
                     Row(
                         verticalAlignment = Alignment.CenterVertically,

@@ -1866,6 +1866,13 @@ fun NavigationButtonsContent(
     var fabSizeState by remember(appearance.fabSizeDp) { mutableStateOf(appearance.fabSizeDp.toFloat()) }
     var selectionBarScaleState by remember(appearance.selectionBarScale) { mutableStateOf(appearance.selectionBarScale) }
 
+    val themeConfig = com.ripple.chat.theme.LocalThemeConfig.current
+    val previewStrokeColor = if (themeConfig?.useDynamicColor == false && themeConfig.customSeedColor != 0) {
+        Color(themeConfig.customSeedColor)
+    } else {
+        MaterialTheme.colorScheme.primary
+    }
+
     Column(modifier = Modifier.fillMaxWidth()) {
         // Live Preview Box
         Surface(
@@ -1900,6 +1907,7 @@ fun NavigationButtonsContent(
                     Surface(
                         shape = CircleShape,
                         color = MaterialTheme.colorScheme.surfaceContainer,
+                        border = BorderStroke(1.dp, previewStrokeColor.copy(alpha = 0.75f)),
                         shadowElevation = 4.dp,
                         modifier = Modifier.height(previewNavHeight)
                     ) {
@@ -1979,6 +1987,7 @@ fun NavigationButtonsContent(
                     Surface(
                         shape = CircleShape,
                         color = MaterialTheme.colorScheme.surfaceContainer,
+                        border = BorderStroke(1.dp, previewStrokeColor.copy(alpha = 0.75f)),
                         shadowElevation = 3.dp,
                         modifier = Modifier.height(previewBarH)
                     ) {

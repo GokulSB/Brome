@@ -10,6 +10,7 @@ import android.widget.Toast
 import androidx.compose.animation.*
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -188,108 +189,56 @@ fun TideSelectionTopBar(
     selectedCount: Int,
     isAllSelected: Boolean = false,
     onCloseClick: () -> Unit,
-    onSelectAllClick: () -> Unit,
+    onSelectAllClick: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     val appearance = com.ripple.chat.theme.LocalBromeAppearance.current
     val haptic = LocalHapticFeedback.current
-    val selectAllTooltip = if (isAllSelected) "Deselect all" else "Select all"
-    val selectAllTooltipState = rememberTooltipState()
 
     Row(
         modifier = modifier
             .fillMaxWidth()
             .height(52.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
+        horizontalArrangement = Arrangement.Start,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Surface(
-                onClick = {
-                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                    onCloseClick()
-                },
-                shape = RoundedCornerShape(appearance.cornerRadius.dp),
-                color = MaterialTheme.colorScheme.surfaceContainer,
-                modifier = Modifier
-                    .size(52.dp)
-                    .pressScale()
-                    .semantics {
-                        role = Role.Button
-                        contentDescription = "Exit Selection"
-                    }
-            ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Icon(
-                        Icons.Rounded.Close,
-                        contentDescription = "Exit Selection",
-                        tint = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.size(22.dp)
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.width(16.dp))
-
-            Text(
-                text = "$selectedCount selected",
-                fontFamily = BricolageFontFamily,
-                fontWeight = FontWeight.Bold,
-                fontSize = 24.sp,
-                color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.semantics {
-                    liveRegion = LiveRegionMode.Polite
-                }
-            )
-        }
-
-        TooltipBox(
-            positionProvider = TooltipDefaults.rememberTooltipPositionProvider(TooltipAnchorPosition.Above),
-            tooltip = {
-                PlainTooltip {
-                    Text(
-                        text = selectAllTooltip,
-                        fontFamily = FigtreeFontFamily,
-                        fontSize = 12.sp
-                    )
-                }
+        Surface(
+            onClick = {
+                haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                onCloseClick()
             },
-            state = selectAllTooltipState
-        ) {
-            Surface(
-                onClick = {
-                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                    onSelectAllClick()
-                },
-                shape = RoundedCornerShape(appearance.cornerRadius.dp),
-                color = MaterialTheme.colorScheme.surfaceContainer,
-                modifier = Modifier
-                    .size(52.dp)
-                    .pressScale()
-                    .semantics {
-                        role = Role.Button
-                        contentDescription = selectAllTooltip
-                    }
-            ) {
-                Box(contentAlignment = Alignment.Center) {
-                    AnimatedContent(
-                        targetState = isAllSelected,
-                        transitionSpec = {
-                            (fadeIn(animationSpec = tween(200)) + scaleIn(initialScale = 0.85f, animationSpec = tween(200)))
-                                .togetherWith(fadeOut(animationSpec = tween(200)) + scaleOut(targetScale = 0.85f, animationSpec = tween(200)))
-                        },
-                        label = "TopBarSelectAllCrossfade"
-                    ) { allSelectedState ->
-                        Icon(
-                            imageVector = if (allSelectedState) Icons.Rounded.Deselect else Icons.Rounded.SelectAll,
-                            contentDescription = if (allSelectedState) "Deselect all" else "Select all",
-                            tint = MaterialTheme.colorScheme.onSurface,
-                            modifier = Modifier.size(22.dp)
-                        )
-                    }
+            shape = RoundedCornerShape(appearance.cornerRadius.dp),
+            color = MaterialTheme.colorScheme.surfaceContainer,
+            modifier = Modifier
+                .size(52.dp)
+                .pressScale()
+                .semantics {
+                    role = Role.Button
+                    contentDescription = "Exit Selection"
                 }
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                Icon(
+                    Icons.Rounded.Close,
+                    contentDescription = "Exit Selection",
+                    tint = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.size(22.dp)
+                )
             }
         }
+
+        Spacer(modifier = Modifier.width(16.dp))
+
+        Text(
+            text = "$selectedCount selected",
+            fontFamily = BricolageFontFamily,
+            fontWeight = FontWeight.Bold,
+            fontSize = 24.sp,
+            color = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.semantics {
+                liveRegion = LiveRegionMode.Polite
+            }
+        )
     }
 }
 
@@ -1108,6 +1057,12 @@ fun TideSelectionActionBar(
     modifier: Modifier = Modifier
 ) {
     val appearance = com.ripple.chat.theme.LocalBromeAppearance.current
+    val themeConfig = com.ripple.chat.theme.LocalThemeConfig.current
+    val themeStrokeColor = if (themeConfig?.useDynamicColor == false && themeConfig.customSeedColor != 0) {
+        Color(themeConfig.customSeedColor)
+    } else {
+        MaterialTheme.colorScheme.primary
+    }
     val scale = appearance.selectionBarScale.coerceIn(0.70f, 1.0f)
     val t = ((scale - 0.70f) / 0.30f).coerceIn(0f, 1f)
 
@@ -1132,6 +1087,7 @@ fun TideSelectionActionBar(
         Surface(
             shape = CircleShape,
             color = MaterialTheme.colorScheme.surfaceContainer,
+            border = BorderStroke(1.5.dp, themeStrokeColor.copy(alpha = 0.75f)),
             shadowElevation = 8.dp,
             modifier = Modifier
                 .height(barHeight)
@@ -1367,6 +1323,12 @@ fun TideFloatingNavAndFab(
     modifier: Modifier = Modifier
 ) {
     val appearance = com.ripple.chat.theme.LocalBromeAppearance.current
+    val themeConfig = com.ripple.chat.theme.LocalThemeConfig.current
+    val themeStrokeColor = if (themeConfig?.useDynamicColor == false && themeConfig.customSeedColor != 0) {
+        Color(themeConfig.customSeedColor)
+    } else {
+        MaterialTheme.colorScheme.primary
+    }
     val navHeight = appearance.navPillHeightDp.dp
     val fabSizeDp = appearance.fabSizeDp.dp
     val fabCornerDp = (appearance.fabSizeDp * 0.36f).dp
@@ -1383,6 +1345,7 @@ fun TideFloatingNavAndFab(
         Surface(
             shape = CircleShape,
             color = MaterialTheme.colorScheme.surfaceContainer,
+            border = BorderStroke(1.5.dp, themeStrokeColor.copy(alpha = 0.75f)),
             shadowElevation = 8.dp,
             modifier = Modifier.height(navHeight)
         ) {
