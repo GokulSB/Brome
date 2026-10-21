@@ -25,20 +25,19 @@ class SelectionActionBarTest {
     // ─────────────────────────────────────────────────────────────────────────
     @Test
     fun testFiveButtonsAndResponsiveWidthCalculation() {
-        val availableWidthDp = 304f // 360dp screen - 20dp*2 margins - 8dp*2 padding
-        val totalButtons = 5
-        val extraPillWidth = 20f
-        val gap = if (availableWidthDp < 312f) 6f else 8f
-        val totalGaps = gap * 4f
-        val calculatedBase = ((availableWidthDp - totalGaps - extraPillWidth) / totalButtons).coerceIn(44f, 52f)
-        val pillWidth = calculatedBase + extraPillWidth
+        val availableWidthDp = 328f // 360dp screen - 16dp*2 margins
+        val scale = 1.0f
+        val t = ((scale - 0.70f) / 0.30f).coerceIn(0f, 1f)
+        val buttonSize = 38f + 12f * t
+        val extraPillWidth = 12f + 8f * t
+        val pillWidth = buttonSize + extraPillWidth
+        val gap = 3f + 5f * t
+        val horizontalPadding = 6f + 4f * t
 
-        // Verify all 5 buttons fit strictly within available width on a 360dp phone without clipping
-        val totalOccupiedWidth = (calculatedBase * 4) + pillWidth + totalGaps
+        val totalOccupiedWidth = (buttonSize * 4f) + pillWidth + (gap * 4f) + (horizontalPadding * 2f)
         assertTrue("Total width of 5 buttons ($totalOccupiedWidth) must be <= available ($availableWidthDp)", totalOccupiedWidth <= availableWidthDp)
-        assertTrue("Base button touch target size ($calculatedBase) must be at least 48dp or shrink to 44dp minimum", calculatedBase >= 44f)
-        assertEquals(52f, calculatedBase, 0.1f)
-        assertEquals(72f, pillWidth, 0.1f)
+        assertEquals(50f, buttonSize, 0.1f)
+        assertEquals(70f, pillWidth, 0.1f)
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -219,30 +218,28 @@ class SelectionActionBarTest {
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // CHECK 8: Selection bar scaling slider calculations
+    // CHECK 8: Selection bar scaling: fixed height, shrinks horizontally to center with reduced gaps and icons
     // ─────────────────────────────────────────────────────────────────────────
     @Test
     fun testSelectionBarScalingCalculation() {
         val scales = listOf(0.70f, 0.80f, 0.90f, 1.0f)
-        for (scale in scales) {
-            val barHeight = 72f * scale
-            val barCornerRadius = 36f * scale
-            val iconSize = (24f * scale).coerceIn(16f, 24f)
-            val availableWidth = 304f
-            val extraPillWidth = 20f * scale
-            val baseGap = if (availableWidth < 312f) 6f else 8f
-            val gap = (baseGap * scale).coerceAtLeast(4f)
-            val totalGaps = gap * 4f
-            val minBase = 44f * scale
-            val maxBase = 52f * scale
-            val calculatedBase = ((availableWidth - totalGaps - extraPillWidth) / 5f).coerceIn(minBase, maxBase)
-            val pillWidth = calculatedBase + extraPillWidth
+        val barHeight = 68f // Bar height stays fixed, does not reduce
 
-            assertTrue("Bar height must be between 50 and 72", barHeight in 50f..72.01f)
-            assertTrue("Bar corner must be half of bar height", kotlin.math.abs(barHeight / 2f - barCornerRadius) < 0.01f)
-            assertTrue("Icon size must scale proportionally down to 16dp min", iconSize in 16f..24.01f)
-            val totalOccupied = (calculatedBase * 4f) + pillWidth + totalGaps
-            assertTrue("Total width must fit in available width", totalOccupied <= availableWidth)
+        for (scale in scales) {
+            val t = ((scale - 0.70f) / 0.30f).coerceIn(0f, 1f)
+            val buttonSize = 38f + 12f * t
+            val extraPillWidth = 12f + 8f * t
+            val pillWidth = buttonSize + extraPillWidth
+            val gap = 3f + 5f * t
+            val horizontalPadding = 6f + 4f * t
+            val iconSize = 16f + 8f * t
+            val totalWidth = (buttonSize * 4f) + pillWidth + (gap * 4f) + (horizontalPadding * 2f)
+
+            assertEquals(68f, barHeight, 0.01f) // Height does not reduce
+            assertTrue("Button size must be between 38 and 50", buttonSize in 38f..50.01f)
+            assertTrue("Icon gap must shrink from 8dp down to 3dp", gap in 3f..8.01f)
+            assertTrue("Icon size must scale down proportionally from 24dp to 16dp", iconSize in 16f..24.01f)
+            assertTrue("Total bar width shrinks horizontally to center (between 220dp and 328dp)", totalWidth in 220f..328f)
         }
     }
 
@@ -253,21 +250,18 @@ class SelectionActionBarTest {
     fun testToastPillClearanceAboveNavAndSelectionBar() {
         val navHeights = listOf(49, 56, 68)
         val fabSizes = listOf(42, 47, 66)
-        val scales = listOf(0.70f, 0.85f, 1.0f)
 
         for (nav in navHeights) {
             for (fab in fabSizes) {
-                for (scale in scales) {
-                    val selectionBarHeight = (72f * scale).toInt()
-                    val maxBottom = maxOf(nav, fab, selectionBarHeight)
-                    val toastClearance = (maxBottom + 48).coerceAtLeast(120)
+                val selectionBarHeight = 68
+                val maxBottom = maxOf(nav, fab, selectionBarHeight)
+                val toastClearance = (maxBottom + 48).coerceAtLeast(120)
 
-                    // The top edge of nav pill or selection bar is 24dp (bottom padding) + maxBottom
-                    val topEdgeOfBottomBar = 24 + maxBottom
-                    val clearanceGap = toastClearance - topEdgeOfBottomBar
+                // The top edge of nav pill or selection bar is 24dp (bottom padding) + maxBottom
+                val topEdgeOfBottomBar = 24 + maxBottom
+                val clearanceGap = toastClearance - topEdgeOfBottomBar
 
-                    assertTrue("Toast bottom clearance ($toastClearance dp) must be strictly above bottom bar ($topEdgeOfBottomBar dp) by at least 24dp", clearanceGap >= 24)
-                }
+                assertTrue("Toast bottom clearance ($toastClearance dp) must be strictly above bottom bar ($topEdgeOfBottomBar dp) by at least 24dp", clearanceGap >= 24)
             }
         }
     }

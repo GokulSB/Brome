@@ -1109,135 +1109,125 @@ fun TideSelectionActionBar(
 ) {
     val appearance = com.ripple.chat.theme.LocalBromeAppearance.current
     val scale = appearance.selectionBarScale.coerceIn(0.70f, 1.0f)
-    val barHeight = (72f * scale).dp
-    val barCornerRadius = (36f * scale).dp
-    val barPadding = (8f * scale).coerceAtLeast(4f).dp
-    val iconSize = (24f * scale).coerceIn(16f, 24f).dp
+    val t = ((scale - 0.70f) / 0.30f).coerceIn(0f, 1f)
+
+    // Bar height does not reduce - stays constant at 68dp with CircleShape pill shape
+    val barHeight = 68.dp
+
+    // As scale reduces: buttons shrink, gaps reduce, icons shrink, shrinking horizontally towards center
+    val buttonSize = (38f + 12f * t).dp
+    val extraPillWidth = (12f + 8f * t).dp
+    val pillWidth = buttonSize + extraPillWidth
+    val gap = (3f + 5f * t).dp
+    val horizontalPadding = (6f + 4f * t).dp
+    val iconSize = (16f + 8f * t).dp
 
     Box(
         modifier = modifier
             .fillMaxWidth()
             .navigationBarsPadding()
-            .padding(horizontal = 20.dp, vertical = 24.dp),
+            .padding(horizontal = 16.dp, vertical = 24.dp),
         contentAlignment = Alignment.Center
     ) {
         Surface(
-            shape = RoundedCornerShape(barCornerRadius),
+            shape = CircleShape,
             color = MaterialTheme.colorScheme.surfaceContainer,
             shadowElevation = 8.dp,
             modifier = Modifier
-                .fillMaxWidth()
                 .height(barHeight)
                 .semantics {
                     liveRegion = LiveRegionMode.Polite
                 }
         ) {
-            BoxWithConstraints(
+            Row(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(barPadding),
-                contentAlignment = Alignment.Center
+                    .padding(horizontal = horizontalPadding, vertical = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(gap),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                val availableWidth = maxWidth
-                // 5 buttons total: 4 circular buttons and 1 wider archive pill
-                val extraPillWidth = (20f * scale).dp
-                val baseGap = if (availableWidth < 312.dp) 6f else 8f
-                val gap = (baseGap * scale).coerceAtLeast(4f).dp
-                val totalGaps = gap * 4
-                val minBase = (44f * scale).dp
-                val maxBase = (52f * scale).dp
-                val calculatedBase = ((availableWidth - totalGaps - extraPillWidth) / 5).coerceIn(minBase, maxBase)
-                val pillWidth = calculatedBase + extraPillWidth
+                // 1. Select all / Deselect all
+                val selectAllIcon = if (isAllSelected) Icons.Rounded.Deselect else Icons.Rounded.SelectAll
+                val selectAllLabel = if (isAllSelected) "Deselect all" else "Select all"
+                TideSelectionIconButton(
+                    icon = selectAllIcon,
+                    contentDescription = selectAllLabel,
+                    tooltipText = selectAllLabel,
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                    contentColor = MaterialTheme.colorScheme.onSurface,
+                    buttonSize = buttonSize,
+                    iconSize = iconSize,
+                    onClick = onSelectAllToggle
+                )
 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    // 1. Select all / Deselect all
-                    val selectAllIcon = if (isAllSelected) Icons.Rounded.Deselect else Icons.Rounded.SelectAll
-                    val selectAllLabel = if (isAllSelected) "Deselect all" else "Select all"
-                    TideSelectionIconButton(
-                        icon = selectAllIcon,
-                        contentDescription = selectAllLabel,
-                        tooltipText = selectAllLabel,
-                        containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-                        contentColor = MaterialTheme.colorScheme.onSurface,
-                        buttonSize = calculatedBase,
-                        iconSize = iconSize,
-                        onClick = onSelectAllToggle
-                    )
-
-                    // 2. Mark read / unread
-                    val isMarkReadAction = hasUnreadSelected
-                    val readIcon = if (isMarkReadAction) Icons.Rounded.MarkEmailRead else Icons.Rounded.MarkEmailUnread
-                    val readLabel = if (isMarkReadAction) "Mark as read" else "Mark as unread"
-                    TideSelectionIconButton(
-                        icon = readIcon,
-                        contentDescription = readLabel,
-                        tooltipText = readLabel,
-                        containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-                        contentColor = MaterialTheme.colorScheme.onSurface,
-                        buttonSize = calculatedBase,
-                        iconSize = iconSize,
-                        onClick = {
-                            if (isMarkReadAction) onMarkReadClick?.invoke() else onMarkUnreadClick?.invoke()
-                        }
-                    )
-
-                    // 3. Star / Unstar
-                    val isStarred = allStarred || isStarredScreen
-                    val starIcon = if (isStarred) Icons.Rounded.Star else Icons.Rounded.StarOutline
-                    val starLabel = if (isStarred) "Unstar" else "Star"
-                    val starContentColor = if (isStarred) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
-                    TideSelectionIconButton(
-                        icon = starIcon,
-                        contentDescription = starLabel,
-                        tooltipText = starLabel,
-                        containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-                        contentColor = starContentColor,
-                        buttonSize = calculatedBase,
-                        iconSize = iconSize,
-                        onClick = onStarClick
-                    )
-
-                    // 4. Archive / Unarchive (Primary pill action, slightly wider)
-                    val archiveIcon = when {
-                        isSpamTab -> Icons.Rounded.CheckCircle
-                        isArchiveScreen -> Icons.Rounded.Unarchive
-                        else -> Icons.Rounded.Archive
+                // 2. Mark read / unread
+                val isMarkReadAction = hasUnreadSelected
+                val readIcon = if (isMarkReadAction) Icons.Rounded.MarkEmailRead else Icons.Rounded.MarkEmailUnread
+                val readLabel = if (isMarkReadAction) "Mark as read" else "Mark as unread"
+                TideSelectionIconButton(
+                    icon = readIcon,
+                    contentDescription = readLabel,
+                    tooltipText = readLabel,
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                    contentColor = MaterialTheme.colorScheme.onSurface,
+                    buttonSize = buttonSize,
+                    iconSize = iconSize,
+                    onClick = {
+                        if (isMarkReadAction) onMarkReadClick?.invoke() else onMarkUnreadClick?.invoke()
                     }
-                    val archiveLabel = when {
-                        isSpamTab -> "Not spam"
-                        isArchiveScreen -> "Unarchive"
-                        else -> "Archive"
-                    }
-                    TideSelectionIconButton(
-                        icon = archiveIcon,
-                        contentDescription = archiveLabel,
-                        tooltipText = archiveLabel,
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        contentColor = MaterialTheme.colorScheme.onPrimary,
-                        buttonSize = calculatedBase,
-                        buttonWidth = pillWidth,
-                        iconSize = iconSize,
-                        onClick = {
-                            if (isSpamTab) onNotSpamClick?.invoke() ?: onArchiveClick() else onArchiveClick()
-                        }
-                    )
+                )
 
-                    // 5. Delete (Red error container circle)
-                    TideSelectionIconButton(
-                        icon = Icons.Rounded.Delete,
-                        contentDescription = "Delete",
-                        tooltipText = "Delete",
-                        containerColor = MaterialTheme.colorScheme.errorContainer,
-                        contentColor = MaterialTheme.colorScheme.onErrorContainer,
-                        buttonSize = calculatedBase,
-                        iconSize = iconSize,
-                        onClick = { onDeleteClick?.invoke() }
-                    )
+                // 3. Star / Unstar
+                val isStarred = allStarred || isStarredScreen
+                val starIcon = if (isStarred) Icons.Rounded.Star else Icons.Rounded.StarOutline
+                val starLabel = if (isStarred) "Unstar" else "Star"
+                val starContentColor = if (isStarred) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                TideSelectionIconButton(
+                    icon = starIcon,
+                    contentDescription = starLabel,
+                    tooltipText = starLabel,
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                    contentColor = starContentColor,
+                    buttonSize = buttonSize,
+                    iconSize = iconSize,
+                    onClick = onStarClick
+                )
+
+                // 4. Archive / Unarchive (Primary pill action, slightly wider)
+                val archiveIcon = when {
+                    isSpamTab -> Icons.Rounded.CheckCircle
+                    isArchiveScreen -> Icons.Rounded.Unarchive
+                    else -> Icons.Rounded.Archive
                 }
+                val archiveLabel = when {
+                    isSpamTab -> "Not spam"
+                    isArchiveScreen -> "Unarchive"
+                    else -> "Archive"
+                }
+                TideSelectionIconButton(
+                    icon = archiveIcon,
+                    contentDescription = archiveLabel,
+                    tooltipText = archiveLabel,
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
+                    buttonSize = buttonSize,
+                    buttonWidth = pillWidth,
+                    iconSize = iconSize,
+                    onClick = {
+                        if (isSpamTab) onNotSpamClick?.invoke() ?: onArchiveClick() else onArchiveClick()
+                    }
+                )
+
+                // 5. Delete (Red error container circle)
+                TideSelectionIconButton(
+                    icon = Icons.Rounded.Delete,
+                    contentDescription = "Delete",
+                    tooltipText = "Delete",
+                    containerColor = MaterialTheme.colorScheme.errorContainer,
+                    contentColor = MaterialTheme.colorScheme.onErrorContainer,
+                    buttonSize = buttonSize,
+                    iconSize = iconSize,
+                    onClick = { onDeleteClick?.invoke() }
+                )
             }
         }
     }

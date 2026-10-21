@@ -1960,50 +1960,63 @@ fun NavigationButtonsContent(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(14.dp))
 
-                // Selection Bar Mini Preview
+                // Selection Bar Mini Preview (Centered, shrinks towards center, stable height)
                 val previewScale = selectionBarScaleState
-                val previewBarH = (32f * previewScale).dp
-                val previewCorner = (16f * previewScale).dp
-                val previewBtnH = (22f * previewScale).dp
-                val previewIconSz = (12f * previewScale).coerceAtLeast(9f).dp
+                val previewT = ((previewScale - 0.70f) / 0.30f).coerceIn(0f, 1f)
+                val previewBarH = 38.dp
+                val previewBtnH = (20f + 6f * previewT).dp
+                val previewPillW = previewBtnH + (7f + 3f * previewT).dp
+                val previewGap = (2f + 4f * previewT).dp
+                val previewPad = (4f + 4f * previewT).dp
+                val previewIconSz = (10f + 5f * previewT).dp
 
-                Surface(
-                    shape = RoundedCornerShape(previewCorner),
-                    color = MaterialTheme.colorScheme.surfaceContainer,
-                    modifier = Modifier.fillMaxWidth().height(previewBarH)
+                Box(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Row(
-                        modifier = Modifier.fillMaxSize().padding(horizontal = (6f * previewScale).dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
+                    Surface(
+                        shape = CircleShape,
+                        color = MaterialTheme.colorScheme.surfaceContainer,
+                        shadowElevation = 3.dp,
+                        modifier = Modifier.height(previewBarH)
                     ) {
-                        listOf(
-                            Icons.Rounded.SelectAll to MaterialTheme.colorScheme.surfaceContainerHighest,
-                            Icons.Rounded.MarkEmailRead to MaterialTheme.colorScheme.surfaceContainerHighest,
-                            Icons.Rounded.StarOutline to MaterialTheme.colorScheme.surfaceContainerHighest,
-                            Icons.Rounded.Archive to MaterialTheme.colorScheme.primary,
-                            Icons.Rounded.Delete to MaterialTheme.colorScheme.errorContainer
-                        ).forEachIndexed { i, (icon, bg) ->
-                            val isPill = i == 3
-                            val tint = when (i) {
-                                3 -> MaterialTheme.colorScheme.onPrimary
-                                4 -> MaterialTheme.colorScheme.onErrorContainer
-                                else -> MaterialTheme.colorScheme.onSurface
-                            }
-                            Surface(
-                                shape = CircleShape,
-                                color = bg,
-                                modifier = Modifier.size(width = if (isPill) previewBtnH * 1.35f else previewBtnH, height = previewBtnH)
-                            ) {
-                                Box(contentAlignment = Alignment.Center) {
-                                    Icon(
-                                        imageVector = icon,
-                                        contentDescription = null,
-                                        tint = tint,
-                                        modifier = Modifier.size(previewIconSz)
+                        Row(
+                            modifier = Modifier
+                                .padding(horizontal = previewPad, vertical = 3.dp),
+                            horizontalArrangement = Arrangement.spacedBy(previewGap),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            listOf(
+                                Icons.Rounded.SelectAll to MaterialTheme.colorScheme.surfaceContainerHighest,
+                                Icons.Rounded.MarkEmailRead to MaterialTheme.colorScheme.surfaceContainerHighest,
+                                Icons.Rounded.StarOutline to MaterialTheme.colorScheme.surfaceContainerHighest,
+                                Icons.Rounded.Archive to MaterialTheme.colorScheme.primary,
+                                Icons.Rounded.Delete to MaterialTheme.colorScheme.errorContainer
+                            ).forEachIndexed { i, (icon, bg) ->
+                                val isPill = i == 3
+                                val tint = when (i) {
+                                    3 -> MaterialTheme.colorScheme.onPrimary
+                                    4 -> MaterialTheme.colorScheme.onErrorContainer
+                                    else -> MaterialTheme.colorScheme.onSurface
+                                }
+                                Surface(
+                                    shape = CircleShape,
+                                    color = bg,
+                                    modifier = Modifier.size(
+                                        width = if (isPill) previewPillW else previewBtnH,
+                                        height = previewBtnH
                                     )
+                                ) {
+                                    Box(contentAlignment = Alignment.Center) {
+                                        Icon(
+                                            imageVector = icon,
+                                            contentDescription = null,
+                                            tint = tint,
+                                            modifier = Modifier.size(previewIconSz)
+                                        )
+                                    }
                                 }
                             }
                         }

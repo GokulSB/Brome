@@ -124,7 +124,7 @@ fun BromeToastHost(modifier: Modifier = Modifier) {
     val maxBottomHeight = maxOf(
         appearance.navPillHeightDp,
         appearance.fabSizeDp,
-        (72f * appearance.selectionBarScale).toInt()
+        68
     )
     val toastBottomClearance = (maxBottomHeight + 48).coerceAtLeast(120).dp
 
