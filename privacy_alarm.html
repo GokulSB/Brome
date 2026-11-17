@@ -1,0 +1,64 @@
+# Privacy Policy for Ripple Clock
+
+**Last Updated & Effective Date:** November 17, 2026  
+**Application:** Ripple Clock (`com.ripple.glassclock`)  
+**Developer Contact:** support@rippleclock.app
+
+---
+
+### 1. Overview & Privacy Commitment
+Ripple Clock is designed from the ground up as a privacy-first, 100% offline-capable clock, alarm, timer, and stopwatch application for Android. 
+
+We do not collect, transmit, store, sell, or monetize any of your personal data. The app operates locally on your device without user accounts, analytics beacons, or third-party advertising SDKs.
+
+---
+
+### 2. Permissions & How They Are Used
+To provide alarm and reminder functionality, Ripple Clock requests specific Android permissions. Each permission is used strictly on-device in real time:
+
+- **Location Services (`ACCESS_FINE_LOCATION`, `ACCESS_COARSE_LOCATION`, `FOREGROUND_SERVICE_LOCATION`):**  
+  Used solely for user-configured Location-Based Alarms to calculate proximity to your selected target destination. Location data is processed strictly on-device in real time and is never logged, stored, or transmitted to any server.
+  
+- **Audio / Microphone (`RECORD_AUDIO`):**  
+  Used exclusively for optional Voice Alarm Commands when you tap the microphone button. Spoken audio is converted to text using Android's built-in speech recognition service and is never recorded or uploaded.
+  
+- **Exact Alarms (`SCHEDULE_EXACT_ALARM`, `USE_EXACT_ALARM`):**  
+  Required by Android 12+ to schedule and trigger alarms at the precise second you set, avoiding battery-saver delays.
+  
+- **Full Screen Intent & Notifications (`USE_FULL_SCREEN_INTENT`, `POST_NOTIFICATIONS`):**  
+  Displays full-screen alarm ringing windows over the lock screen and active timer notifications in your notification bar.
+  
+- **Startup Boot (`RECEIVE_BOOT_COMPLETED`):**  
+  Automatically reschedules your active alarms if your device reboots.
+  
+- **Foreground Services (`FOREGROUND_SERVICE_MEDIA_PLAYBACK`, `FOREGROUND_SERVICE_LOCATION`):**  
+  Ensures alarm tones ring reliably without interruption from Android memory killers and monitors geofence arrival when location alarms are enabled.
+
+---
+
+### 3. Data Storage & Retention
+All alarm settings, preferences, custom labels, and timer states are stored locally on your device in Android's private app sandbox. We do not operate external databases. If you clear app data in Android Settings or uninstall Ripple Clock, all stored information is permanently removed.
+
+---
+
+### 4. Third-Party Trackers & Ads
+- **Zero Third-Party Trackers:** No analytics SDKs (e.g., Firebase Analytics, Google Analytics).
+- **Zero Ads:** No advertising networks or tracking SDKs.
+- **Zero Cloud Profiling:** No user accounts, profiling, or cookies.
+
+---
+
+### 5. Children's Privacy (COPPA)
+Because Ripple Clock does not collect any personal data from any user, it complies with COPPA and is safe for users of all ages.
+
+---
+
+### 6. GDPR & CCPA Compliance
+Because no personal data is collected or held on external servers, there is no remote personal data to access or delete. Users retain complete local control to delete alarms or reset the app at any time through device settings.
+
+---
+
+### 7. Contact Us
+For questions regarding this Privacy Policy:
+- **Email:** gokulsb009@gmail.com
+- **Package ID:** `com.ripple.glassclock`
